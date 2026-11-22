@@ -282,7 +282,7 @@ async function createServer(): Promise<void> {
   // Cancel Pairing Session
   app.post('/api/pairing/:token/cancel', (req, res) => {
     const token = req.params.token.trim().toUpperCase();
-    const callerPeerId = (req as AuthedRequest).session.peerId;
+    const callerPeerId = (req as unknown as AuthedRequest).session.peerId;
     const updated = store.mutate((draft) => {
       const s = draft.pairingSessions[token];
       if (!s || s.hostPeerId !== callerPeerId) return null;

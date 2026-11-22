@@ -129,9 +129,13 @@ class _CodeDigitsState extends State<CodeDigits> with SingleTickerProviderStateM
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [group(0), SizedBox(width: size * 0.6), group(3)],
+            // Shrinks the code a little on very narrow screens or large fonts instead of overflowing.
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [group(0), SizedBox(width: size * 0.6), group(3)],
+              ),
             ),
             const SizedBox(height: 4),
             AnimatedBuilder(
