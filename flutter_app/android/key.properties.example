@@ -1,0 +1,5 @@
+# Rename this file to `key.properties` inside `flutter_app/android/` before building your Play Store .aab
+storePassword=YOUR_KEYSTORE_PASSWORD
+keyPassword=YOUR_KEY_PASSWORD
+keyAlias=vega-release
+storeFile=../vega-release.jks

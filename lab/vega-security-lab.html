@@ -1,0 +1,116 @@
+<title>Vega Security Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@600;700&display=swap">
+<style>
+:root{--bg:#f4f6fb;--card:#ffffff;--fg:#0a1f44;--mut:#5b6b88;--line:#dde3f0;--acc:#0a63d6;--gold:#a9772a;--ok:#0f7b4a;--okbg:#e2f5ec;--bad:#b3261e;--badbg:#fdeceb;--code:#eef2fa}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#06132b;--card:#0c2147;--fg:#eaf1ff;--mut:#9db0d3;--line:#1d3769;--acc:#5aa2ff;--gold:#e4c788;--ok:#58d6a0;--okbg:#0d3a2b;--bad:#ff8a80;--badbg:#431a1a;--code:#081a38;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#06132b;--card:#0c2147;--fg:#eaf1ff;--mut:#9db0d3;--line:#1d3769;--acc:#5aa2ff;--gold:#e4c788;--ok:#58d6a0;--okbg:#0d3a2b;--bad:#ff8a80;--badbg:#431a1a;--code:#081a38;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 Inter,system-ui,sans-serif;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:720px;margin:0 auto}
+h1{font:700 26px/1.2 "Space Grotesk",Inter,sans-serif;margin:0 0 4px;text-wrap:balance}
+h2{font:700 17px "Space Grotesk",Inter,sans-serif;margin:0 0 10px;color:var(--gold)}
+p.sub{margin:0 0 18px;color:var(--mut)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px;min-width:0}
+label{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin:10px 0 4px}
+input{width:100%;box-sizing:border-box;font:inherit;color:var(--fg);background:var(--code);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+button{font:600 14px Inter,sans-serif;background:var(--acc);color:#fff;border:0;border-radius:10px;padding:10px 16px;cursor:pointer}
+button.alt{background:transparent;color:var(--acc);border:1px solid var(--acc)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.out{margin-top:10px;display:grid;gap:8px}
+.res{border-radius:10px;padding:9px 12px;font-size:14px;overflow-wrap:anywhere}
+.res b{display:block;font-size:11px;letter-spacing:.07em;text-transform:uppercase;margin-bottom:2px}
+.res.old{background:var(--badbg);color:var(--bad)}
+.res.new{background:var(--okbg);color:var(--ok)}
+code{font:13px ui-monospace,monospace;background:var(--code);padding:1px 5px;border-radius:5px}
+.t{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line);font-size:14px}
+.t:first-child{border-top:0}
+.dot{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700}
+.dot.p{background:var(--okbg);color:var(--ok)}.dot.f{background:var(--badbg);color:var(--bad)}
+.sum{font:700 18px "Space Grotesk",sans-serif;margin-bottom:6px}
+.note{font-size:13px;color:var(--mut);margin-top:8px}
+</style>
+<div class="wrap">
+<h1>Vega Security Lab</h1>
+<p class="sub">Hissa A ke fixes ko phone par khud test kijiye. Ye wahi logic ka JavaScript port hai jo server aur Flutter me lagaya gaya hai (asli app ka test nahi, logic ka test).</p>
+
+<div class="card"><h2>1. Vault ".." bug: purana vs naya</h2>
+<label>transferId (try: <code>..</code>)</label><input id="tid" value=".." autocapitalize="off" autocorrect="off">
+<div class="row"><button id="b1">Check karo</button><button class="alt" data-set="..">..</button><button class="alt" data-set="../x">../x</button><button class="alt" data-set="tx_001">tx_001</button></div>
+<div class="out" id="o1"></div></div>
+
+<div class="card"><h2>2. File ka naam safe karna</h2>
+<label>Aane wali file ka naam</label><input id="fn" value="../../etc/passwd" autocapitalize="off" autocorrect="off">
+<div class="row"><button id="b2">Sanitize</button><button class="alt" data-fn="<img src=x onerror=alert(1)>.jpg">XSS naam</button><button class="alt" data-fn="..">..</button><button class="alt" data-fn="फोटो 1.jpg">Hindi</button></div>
+<div class="out" id="o2"></div></div>
+
+<div class="card"><h2>3. Pairing code aur brute-force rok</h2>
+<div class="row" style="margin-top:0"><button id="b3">Naya code banao</button><button class="alt" id="b3b">40 galat guess bhejo</button></div>
+<div class="out" id="o3"></div></div>
+
+<div class="card"><h2>4. Corrupt data ki rok (frame parser)</h2>
+<div class="row" style="margin-top:0"><button id="b4a">Sahi frames</button><button class="alt" id="b4b">Bahut bada header</button><button class="alt" id="b4c">Kharab JSON</button></div>
+<div class="out" id="o4"></div></div>
+
+<div class="card"><h2>5. Sab checks ek saath</h2>
+<div class="row" style="margin-top:0"><button id="all">Sab tests chalao</button></div>
+<div id="sum" class="sum"></div><div id="list"></div>
+<p class="note">Aapka Android/Flutter code GitHub Actions me <code>flutter test</code> se alag se check hoga. Is page me sirf logic ki jaanch hoti hai.</p></div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const base=n=>{const parts=n.replace(/\\/g,'/').split('/');let b=parts[parts.length-1];return b};
+const oldSan=n=>{const parts=n.split('/');const b=parts[parts.length-1]||'';return (b==='..'?'..':b).replace(/[^a-zA-Z0-9._\-ऀ-ॿ ]/g,'_')};
+const newSan=(n,fb='file')=>{if(typeof n!=='string')return fb;let b=base(n).replace(/[^a-zA-Z0-9._\-ऀ-ॿ ]/g,'_');b=b.replace(/^\.+/,'').replace(/[ .]+$/,'').slice(0,120);return b||fb};
+const isSafeId=v=>typeof v==='string'&&/^[A-Za-z0-9_-]{1,64}$/.test(v);
+const ROOT='/app/.vega-data';
+const norm=p=>{const out=[];for(const s of p.split('/')){if(!s||s==='.')continue;if(s==='..')out.pop();else out.push(s)}return '/'+out.join('/')};
+const join=(a,b)=>norm(a+'/'+b);
+const safeJoin=(root,child)=>{const r=norm(root);const x=join(r,child);if(x===r||!x.startsWith(r+'/'))throw new Error('Path escapes its root directory.');return x};
+const ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const token=()=>{const a=new Uint8Array(8);crypto.getRandomValues(a);return 'VEG-'+[...a].map(b=>ALPHA[b&31]).join('')};
+const shape=t=>/^VEG-[A-Z2-9]{8}$/.test(t);
+class RL{constructor(l,w){this.l=l;this.w=w;this.h={}}allow(k,now=Date.now()){const c=this.h[k];if(!c||c.r<=now){this.h[k]={n:1,r:now+this.w};return true}c.n++;return c.n<=this.l}}
+class Reader{constructor(){this.b=new Uint8Array(0)}add(d){const n=new Uint8Array(this.b.length+d.length);n.set(this.b);n.set(d,this.b.length);this.b=n}
+ next(){if(this.b.length<4)return null;const hl=new DataView(this.b.buffer,this.b.byteOffset,4).getUint32(0);if(hl===0||hl>65536)throw new Error('invalid header length '+hl);if(this.b.length<4+hl)return null;let h;try{h=JSON.parse(new TextDecoder().decode(this.b.subarray(4,4+hl)))}catch{throw new Error('header is not valid JSON')}
+ if(!h||typeof h!=='object'||Array.isArray(h))throw new Error('header must be a JSON object');const pl=h.payloadLen;if(!Number.isInteger(pl)||pl<0||pl>16*1024*1024)throw new Error('invalid payload length');const tot=4+hl+pl;if(this.b.length<tot)return null;const p=this.b.slice(4+hl,tot);this.b=this.b.slice(tot);return{h,p}}}
+const frame=(h,p=[])=>{const hh=new TextEncoder().encode(JSON.stringify({...h,payloadLen:p.length}));const o=new Uint8Array(4+hh.length+p.length);new DataView(o.buffer).setUint32(0,hh.length);o.set(hh,4);o.set(p,4+hh.length);return o};
+const res=(k,t,h)=>`<div class="res ${k}"><b>${t}</b>${h}</div>`;
+
+function run1(){const t=$('tid').value;const o=oldSan(t);
+ const oldTarget=join(ROOT+'/chunks',o);
+ let n;try{if(!isSafeId(t))throw new Error('transferId sirf A-Z a-z 0-9 _ - (max 64) ho sakta hai');n='Folder: '+safeJoin(ROOT+'/chunks',t)}catch(e){n='Roka gaya: '+e.message}
+ const danger=oldTarget===ROOT||oldTarget===ROOT+'/chunks';
+ $('o1').innerHTML=res('old','Purana code',`rm -rf <code>${esc(oldTarget)}</code>${danger?'<br><b style="display:inline">Poora data folder ud sakta tha</b>':''}`)+res('new','Naya code',esc(n))}
+function run2(){const v=$('fn').value;$('o2').innerHTML=res('old','Purana',`<code>${esc(oldSan(v))}</code>`)+res('new','Naya',`<code>${esc(newSan(v))}</code>`)+res('new','Portal me dikhana',`Ab naam sirf text ki tarah dikhta hai (<code>textContent</code>), HTML ki tarah nahi: <code>${esc(v)}</code>`)}
+function run3(){const t=token();$('o3').innerHTML=res('new','Naya pairing code',`<code>${t}</code> (40 bit, saaf akshar: 0/O aur 1/I nahi)`)+res('new','Pehle 4 byte',`Purana code sirf 32 bit ka tha (8 hex akshar)`)}
+function run3b(){const rl=new RL(10,60000);let ok=0,blocked=0;for(let i=0;i<40;i++)rl.allow('ip')?ok++:blocked++;$('o3').innerHTML=res('new','Rate limit (10 guess/min per device)',`40 guess me se ${ok} chale, ${blocked} rok diye gaye`)}
+function run4(kind){let h=[];try{
+ if(kind==='a'){const r=new Reader();const all=[frame({type:'init',id:'a'}),frame({type:'chunk',index:0},new Uint8Array(3000).fill(7)),frame({type:'complete'})];const bytes=new Uint8Array(all.reduce((s,x)=>s+x.length,0));let o=0;for(const x of all){bytes.set(x,o);o+=x.length}
+  const got=[];for(let i=0;i<bytes.length;i+=7){r.add(bytes.subarray(i,i+7));for(let f=r.next();f;f=r.next())got.push(f.h.type)}h.push(res('new','7-7 byte ke tukdo me bhi sahi parse',esc(got.join(' → '))))}
+ if(kind==='b'){const r=new Reader();r.add(new Uint8Array([0x7f,0xff,0xff,0xff,1,2,3]));r.next()}
+ if(kind==='c'){const j=new TextEncoder().encode('{not json');const r=new Reader();r.add(frame({}).slice(0,0));const b=new Uint8Array(4+j.length);new DataView(b.buffer).setUint32(0,j.length);b.set(j,4);r.add(b);r.next()}
+}catch(e){h.push(res('new','Connection band, kuch save nahi hua',esc(e.message)))}
+ $('o4').innerHTML=h.join('')}
+
+function tests(){const T=[];const t=(n,f)=>{let ok=false,m='';try{ok=f()!==false}catch(e){m=e.message}T.push([n,ok,m])};
+ t('sanitize: .., ., khali naam kabhi nahi milte',()=>['..','.','','...','../..','a/../..','..\\..'].every(x=>{const s=newSan(x);return s!=='..'&&s!=='.'&&s&&!/[\\/]/.test(s)}));
+ t('sanitize: ../etc/passwd → passwd',()=>newSan('../etc/passwd')==='passwd');
+ t('sanitize: Hindi naam surakshit',()=>newSan('फोटो 1.jpg')==='फोटो 1.jpg');
+ t('sanitize: 500 akshar ka naam kata gaya',()=>newSan('x'.repeat(500)).length<=120);
+ t('transferId: .., ../x, a/b rok diye gaye',()=>['..','.','','../x','a/b','a b'].every(x=>!isSafeId(x))&&isSafeId('tx_1-A'));
+ t('safeJoin: root se bahar jaana mana',()=>['..','.','../x','a/../..'].every(x=>{try{safeJoin(ROOT+'/chunks',x);return false}catch{return true}})&&safeJoin(ROOT+'/chunks','tx1')===ROOT+'/chunks/tx1');
+ t('purana code .vega-data delete karta (bug confirm)',()=>join(ROOT+'/chunks',oldSan('..'))===ROOT);
+ t('pairing token: shape sahi, 2000 me unique',()=>{const s=new Set();for(let i=0;i<2000;i++){const x=token();if(!shape(x))return false;s.add(x)}return s.size>1990});
+ t('rate limit: 11vi koshish rokti hai, naya window chalta hai',()=>{const r=new RL(10,1000);let n=0;for(let i=0;i<10;i++)if(r.allow('a',0))n++;return n===10&&!r.allow('a',1)&&r.allow('a',1001)});
+ t('frame parser: har size ke tukdo me sahi',()=>{for(const step of [1,3,7,64,1000]){const r=new Reader();const b=frame({type:'chunk'},new Uint8Array(5000).fill(1));let c=0;for(let i=0;i<b.length;i+=step){r.add(b.subarray(i,i+step));for(let f=r.next();f;f=r.next())c++}if(c!==1)return false}return true});
+ t('frame parser: bada header / kharab JSON / bada payload rok',()=>{const bad=[new Uint8Array([0x7f,0xff,0xff,0xff,1]),(()=>{const j=new TextEncoder().encode('[1]');const b=new Uint8Array(4+j.length);new DataView(b.buffer).setUint32(0,j.length);b.set(j,4);return b})(),(()=>{const j=new TextEncoder().encode(JSON.stringify({payloadLen:1<<30}));const b=new Uint8Array(4+j.length);new DataView(b.buffer).setUint32(0,j.length);b.set(j,4);return b})()];return bad.every(x=>{try{const r=new Reader();r.add(x);r.next();return false}catch{return true}})});
+ t('portal naam: HTML ki jagah text',()=>{const d=document.createElement('div');d.textContent='<img src=x onerror=alert(1)>';return d.querySelector('img')===null});
+ return T}
+$('b1').onclick=run1;$('b2').onclick=run2;$('b3').onclick=run3;$('b3b').onclick=run3b;
+$('b4a').onclick=()=>run4('a');$('b4b').onclick=()=>run4('b');$('b4c').onclick=()=>run4('c');
+document.querySelectorAll('[data-set]').forEach(b=>b.onclick=()=>{$('tid').value=b.dataset.set;run1()});
+document.querySelectorAll('[data-fn]').forEach(b=>b.onclick=()=>{$('fn').value=b.dataset.fn;run2()});
+$('all').onclick=()=>{const T=tests();const p=T.filter(x=>x[1]).length;$('sum').textContent=p+' / '+T.length+' pass'+(p===T.length?' ✓':'');$('list').innerHTML=T.map(([n,ok,m])=>`<div class="t"><span class="dot ${ok?'p':'f'}">${ok?'✓':'✗'}</span><span>${esc(n)}${m?'<br><code>'+esc(m)+'</code>':''}</span></div>`).join('')};
+run1();run2();
+</script>

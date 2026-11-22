@@ -1,0 +1,13 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+dev-dist/
+.vega-data/
+key.properties
+*.jks
+.dart_tool/

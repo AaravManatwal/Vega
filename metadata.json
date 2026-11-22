@@ -1,0 +1,6 @@
+{
+  "name": "Vega (वेग)",
+  "description": "Universal offline-first peer-to-peer file transfer and cross-platform folder synchronization ecosystem by Manatwal Innovations. Fast, secure, E2EE local sharing across Android and Windows.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

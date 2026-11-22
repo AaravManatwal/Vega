@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vega (वेग) — Universal Offline File Transfer</title>
+    <meta
+      name="description"
+      content="Universal offline-first peer-to-peer file transfer and cross-platform folder synchronization ecosystem by Manatwal Innovations. Fast, secure, E2EE local sharing across Android and Windows."
+    />
+    <meta property="og:title" content="Vega (वेग) — Universal Offline File Transfer" />
+    <meta
+      property="og:description"
+      content="Fast, secure, offline-first peer-to-peer file transfer and cross-platform folder sync with SHA-256 verification and end-to-end encryption."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#101a35" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Vega" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Yatra+One&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem('vega_theme');
+          if (saved !== 'light') {
+            document.documentElement.classList.add('dark');
+          }
+        } catch (e) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
+  </head>
+  <body class="bg-[#F6F4EE] text-[#0A1F44] dark:bg-[#06132B] dark:text-[#F8FAFC] antialiased selection:bg-[#C5A059]/30 selection:text-[#0A1F44] dark:selection:text-[#E4C788]">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

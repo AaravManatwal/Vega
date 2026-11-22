@@ -1,0 +1,121 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --font-display: 'Outfit', 'Noto Sans Devanagari', system-ui, sans-serif;
+    --font-heritage: 'Yatra One', 'Cinzel', 'Noto Sans Devanagari', serif;
+    --font-royal: 'Cinzel', 'Outfit', serif;
+    --font-sans: 'Plus Jakarta Sans', 'Noto Sans Devanagari', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+    --vega-deep-navy: #0A1F44;
+    --vega-midnight-blue: #003366;
+    --vega-electric-blue: #007AFF;
+    --vega-gold-leaf: #C5A059;
+    --vega-gold-highlight: #E4C788;
+    --vega-ivory: #F7F5EE;
+  }
+
+  html {
+    scrollbar-gutter: stable;
+    overflow-x: clip;
+    overscroll-behavior-y: none;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: clip;
+    overscroll-behavior-y: none;
+  }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
+    text-wrap: balance;
+  }
+
+  .font-heritage {
+    font-family: var(--font-heritage);
+    text-wrap: balance;
+  }
+
+  .font-royal {
+    font-family: var(--font-royal);
+  }
+
+  code, pre, .font-mono {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible {
+    outline: 2px solid var(--vega-electric-blue);
+    outline-offset: 2px;
+  }
+}
+
+/* Subtle Rajasthani Jali Geometric Lattice Pattern (Preserves Tailwind Gradients) */
+.bg-rajasthani-jali {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48' fill='none'%3E%3Cpath d='M24 2L46 24L24 46L2 24Z' stroke='%23C5A059' stroke-opacity='0.09' stroke-width='1'/%3E%3Cpath d='M24 11L37 24L24 37L11 24Z' stroke='%23007AFF' stroke-opacity='0.08' stroke-width='0.9'/%3E%3Ccircle cx='24' cy='24' r='2' fill='%23C5A059' fill-opacity='0.12'/%3E%3C/svg%3E"),
+    linear-gradient(var(--tw-gradient-position, to bottom), var(--tw-gradient-stops, transparent, transparent));
+  background-size: 48px 48px, 100% 100%;
+}
+
+.bg-rajasthani-jali-light {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48' fill='none'%3E%3Cpath d='M24 2L46 24L24 46L2 24Z' stroke='%23C5A059' stroke-opacity='0.15' stroke-width='1'/%3E%3Ccircle cx='24' cy='24' r='1.8' fill='%23C5A059' fill-opacity='0.18'/%3E%3C/svg%3E"),
+    linear-gradient(var(--tw-gradient-position, to bottom), var(--tw-gradient-stops, transparent, transparent));
+  background-size: 48px 48px, 100% 100%;
+}
+
+.dark .bg-rajasthani-jali-light {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48' fill='none'%3E%3Cpath d='M24 2L46 24L24 46L2 24Z' stroke='%23C5A059' stroke-opacity='0.09' stroke-width='1'/%3E%3Cpath d='M24 11L37 24L24 37L11 24Z' stroke='%23007AFF' stroke-opacity='0.08' stroke-width='0.9'/%3E%3Ccircle cx='24' cy='24' r='2' fill='%23C5A059' fill-opacity='0.12'/%3E%3C/svg%3E"),
+    linear-gradient(var(--tw-gradient-position, to bottom), var(--tw-gradient-stops, transparent, transparent));
+  background-size: 48px 48px, 100% 100%;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Subtle Navy/Gold Scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(197, 160, 89, 0.35);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(197, 160, 89, 0.6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.reduced-motion *, .reduced-motion *::before, .reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}

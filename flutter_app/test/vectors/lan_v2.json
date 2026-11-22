@@ -1,0 +1,200 @@
+{
+  "label": "VEGA-LAN-2",
+  "rfc7748": {
+    "sharedHex": "4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742"
+  },
+  "cases": [
+    {
+      "qr": true,
+      "encrypted": true,
+      "params": {
+        "totalBytes": 123456789,
+        "chunkSize": 1048576,
+        "fileName": "फोटो 1.jpg",
+        "taskId": "task_0123-ABC"
+      },
+      "ephemeralSender": {
+        "seed": "77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a",
+        "pub": "8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a"
+      },
+      "ephemeralReceiver": {
+        "seed": "5dab087e624a8a4b79e17f8b83800ee66f3bb1292618b6fd1c2f8b27ff88e0eb",
+        "pub": "de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f"
+      },
+      "staticReceiver": {
+        "seed": "030a11181f262d343b424950575e656c737a81888f969da4abb2b9c0c7ced5dc",
+        "pub": "bb50ff9e82a574cfbf820e97f60fb9c143ec7415cf514f8cfd98eff59e059614"
+      },
+      "psk": "00112233445566778899aabbccddeeff",
+      "dhEF": "4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742",
+      "dhER": "9526fe89e7e0cea5b489bfe2b1afe65aeb9c615a1ac364d67f7896378324b45b",
+      "transcript": "1d75964019807240a3436cee399e766018c189ec1a798c3fcab00feaf9928456",
+      "sessionKey": "2a3e7a1af4a6a1e098cf226eaa0451a1859c04d433295fac3a362e55c68bf7c1",
+      "confirmKey": "501146a1807b906192456d62e0d1131140995d92842c14385edfabef06ef3e6e",
+      "resumeKey": "00d3117570e9ed3525d821ab1c0784b11daa062069192f7035062e78c5549acf",
+      "sas": "757557",
+      "resumeProof": "9c523fad887dcc20e5428fa88699e4a0d490bdf16faaf693e2f0dd551d018d31",
+      "resumedConfirm": "154a410c5502cefcb87d798a68336b79ffec4e0592b9a1c6a4e2b18649a7b3c9",
+      "acceptConfirm": "cdf6e0fe2682cd10501992ac738c01cb5497cbb1d73ae31f13a9c8760eee5d85",
+      "doneConfirm": "3c64462887adb203fcfbab3641461e062c4dc9731722e6c3cb4cd4988f564280",
+      "doneArgs": {
+        "ok": true,
+        "sha256Hex": "68381940132f4db7454d56265e7411d1ef7ec83346a0b39571cb74faed94e151",
+        "bytes": 95
+      },
+      "chunk": {
+        "index": 3,
+        "offset": 3145728,
+        "nonce": "000102030405060708090a0b",
+        "plain": "566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93",
+        "aad": "564547412d4c414e2d32206368756e6b7c337c333134353732387c3935",
+        "cipherText": "2869b5123d8354ee4e9c2f5e59c7129655f8fc5369f9e65c3ec0891d8a38fa6a61e1ccb994478cd827428749b27cc7bade8245b8d54c1f8d6ab36c4f0ed17bed6949977285c44f96528186b33ffa64de53dc7a580e026fa9bc312c36d4305f",
+        "mac": "9072c2f142d12c0a7c49790d05d134af"
+      }
+    },
+    {
+      "qr": true,
+      "encrypted": false,
+      "params": {
+        "totalBytes": 123456789,
+        "chunkSize": 1048576,
+        "fileName": "फोटो 1.jpg",
+        "taskId": "task_0123-ABC"
+      },
+      "ephemeralSender": {
+        "seed": "77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a",
+        "pub": "8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a"
+      },
+      "ephemeralReceiver": {
+        "seed": "5dab087e624a8a4b79e17f8b83800ee66f3bb1292618b6fd1c2f8b27ff88e0eb",
+        "pub": "de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f"
+      },
+      "staticReceiver": {
+        "seed": "030a11181f262d343b424950575e656c737a81888f969da4abb2b9c0c7ced5dc",
+        "pub": "bb50ff9e82a574cfbf820e97f60fb9c143ec7415cf514f8cfd98eff59e059614"
+      },
+      "psk": "00112233445566778899aabbccddeeff",
+      "dhEF": "4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742",
+      "dhER": "9526fe89e7e0cea5b489bfe2b1afe65aeb9c615a1ac364d67f7896378324b45b",
+      "transcript": "60596e2be719bd564e514ddcf5cbbc65e5cd2dab765b6b8d4a8a7ba424af8138",
+      "sessionKey": "fec57acbebf58d22426dd5aa5d77d16a1f9bcd412bd99472c254b77f7306dca8",
+      "confirmKey": "d4049b7c53f51d6233ad6c5fce79b2e055a5bde27a21c743c08b220ff5744394",
+      "resumeKey": "d133005e2893e3ac933be8bd5115a3b0cede71a21b9cdcca1b02ebc3360f7282",
+      "sas": "853515",
+      "resumeProof": "0e7a263163ecb277a3359bdb2eff3f123b7f046913b3564f57b9d690998e55fd",
+      "resumedConfirm": "468eb4aeb98e88dc6fb10564d3c95111d4d8a1347acf2ce327500bcc69fc22a9",
+      "acceptConfirm": "203075097e029fbc64e5f66a4b8bea340ebbdcfe869a8e40a679a7eacc1b6fb0",
+      "doneConfirm": "d33e9b8aef4f9fa9568766fc93f275c2235b2bab3e18425a4345c5addb32167d",
+      "doneArgs": {
+        "ok": true,
+        "sha256Hex": "68381940132f4db7454d56265e7411d1ef7ec83346a0b39571cb74faed94e151",
+        "bytes": 95
+      },
+      "chunk": {
+        "index": 3,
+        "offset": 3145728,
+        "nonce": "000102030405060708090a0b",
+        "plain": "566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93",
+        "aad": "564547412d4c414e2d32206368756e6b7c337c333134353732387c3935",
+        "cipherText": "3d3451a46a922e5ab19471515b1e3a1ea038a2d5cfca945b45c7f4f19b38dfb6025590142ec1016905101848f276a5ea0b32833565c017fe298da3e6980d02e22c261a5a170e86972dc0844b2c76405b8fc0fb5a4bb93fb371830ff3bfd7d2",
+        "mac": "0f0338f5a705c032f9708b621761b390"
+      }
+    },
+    {
+      "qr": false,
+      "encrypted": true,
+      "params": {
+        "totalBytes": 123456789,
+        "chunkSize": 1048576,
+        "fileName": "फोटो 1.jpg",
+        "taskId": "task_0123-ABC"
+      },
+      "ephemeralSender": {
+        "seed": "77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a",
+        "pub": "8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a"
+      },
+      "ephemeralReceiver": {
+        "seed": "5dab087e624a8a4b79e17f8b83800ee66f3bb1292618b6fd1c2f8b27ff88e0eb",
+        "pub": "de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f"
+      },
+      "staticReceiver": {
+        "seed": "030a11181f262d343b424950575e656c737a81888f969da4abb2b9c0c7ced5dc",
+        "pub": "bb50ff9e82a574cfbf820e97f60fb9c143ec7415cf514f8cfd98eff59e059614"
+      },
+      "psk": "00112233445566778899aabbccddeeff",
+      "dhEF": "4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742",
+      "dhER": "9526fe89e7e0cea5b489bfe2b1afe65aeb9c615a1ac364d67f7896378324b45b",
+      "transcript": "c9562aec75b946dc027038531fa2fb1186b1fedc8bad89b57d271817f129b7ff",
+      "sessionKey": "f918afc3302046de9e062241849bdf6d9e7982b6eb408137bbbefd089337c109",
+      "confirmKey": "4d7f7b8163836279ab7886e5af84c25162daef8d3720cceac0e7d14bdd88ba54",
+      "resumeKey": "7868e00bf7485e342ce6b9f123689758bfdb1691edb56a92481db5cd7ef6b848",
+      "sas": "569460",
+      "resumeProof": "9f767c49f4e45289d38dda899a289d1ea36216b64813cbebd060ffd22b2b741e",
+      "resumedConfirm": "11cc4865f45ea484a35aee908ca193145376bf003b11f024729822b338b68289",
+      "acceptConfirm": "6f9848ae6719f502fcc6d096b622391f459aa6b8d64aaa99c5eb065e08fe8b38",
+      "doneConfirm": "ea0f44a83b846c7f8cba5867fcc86550fad566748d741190aeafbe9b18d707d1",
+      "doneArgs": {
+        "ok": true,
+        "sha256Hex": "68381940132f4db7454d56265e7411d1ef7ec83346a0b39571cb74faed94e151",
+        "bytes": 95
+      },
+      "chunk": {
+        "index": 3,
+        "offset": 3145728,
+        "nonce": "000102030405060708090a0b",
+        "plain": "566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93",
+        "aad": "564547412d4c414e2d32206368756e6b7c337c333134353732387c3935",
+        "cipherText": "ecc881efb15ebc31489da2e32b92151e8093483a32bbcd2d8a291b192c16a9ef37a4e95cb43c8c751b6369fc1a6b2af2ef95ffa4a0fd92e4ab001618841e12576f0a2fa027ea7da257f6499eac3c9095ecda99c425e7559411ffd3e349c19a",
+        "mac": "633b33d380d0c3e06851145b4eee797b"
+      }
+    },
+    {
+      "qr": false,
+      "encrypted": false,
+      "params": {
+        "totalBytes": 123456789,
+        "chunkSize": 1048576,
+        "fileName": "फोटो 1.jpg",
+        "taskId": "task_0123-ABC"
+      },
+      "ephemeralSender": {
+        "seed": "77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a",
+        "pub": "8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a"
+      },
+      "ephemeralReceiver": {
+        "seed": "5dab087e624a8a4b79e17f8b83800ee66f3bb1292618b6fd1c2f8b27ff88e0eb",
+        "pub": "de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f"
+      },
+      "staticReceiver": {
+        "seed": "030a11181f262d343b424950575e656c737a81888f969da4abb2b9c0c7ced5dc",
+        "pub": "bb50ff9e82a574cfbf820e97f60fb9c143ec7415cf514f8cfd98eff59e059614"
+      },
+      "psk": "00112233445566778899aabbccddeeff",
+      "dhEF": "4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742",
+      "dhER": "9526fe89e7e0cea5b489bfe2b1afe65aeb9c615a1ac364d67f7896378324b45b",
+      "transcript": "201bf6eadb9c2760f9e6be9b0bc0c7038472bdf82d637cb82d05cc7f89783282",
+      "sessionKey": "e489a9557ca58771091a86c7dfbd9daabab6af8a87bac9baa3edbf88871b4d9f",
+      "confirmKey": "b85abbfd8b612c794f73986afbe099d48bf1072fd49a2b33c9c93c151a26ed7e",
+      "resumeKey": "321f36636d86374191efe793e7f600b089f00ea8e9654bb106af590357a8b9c1",
+      "sas": "610928",
+      "resumeProof": "0b4198543ade999f669ad76c91b459da0140ae5b4d5f08fe153137a9b477298e",
+      "resumedConfirm": "c2d74b80a90e0eb393db867577fb8de6e3d4375ec718a92fe55b3936e58c2ab6",
+      "acceptConfirm": "9152ac4f3d4d57c3c032e472173a648acf62d6d994324d3aeaef5eb6624fbc95",
+      "doneConfirm": "f274c7503a6ba0c536baabf576fb3eb9bc6d5d0a42fafafefda688b757672f5c",
+      "doneArgs": {
+        "ok": true,
+        "sha256Hex": "68381940132f4db7454d56265e7411d1ef7ec83346a0b39571cb74faed94e151",
+        "bytes": 95
+      },
+      "chunk": {
+        "index": 3,
+        "offset": 3145728,
+        "nonce": "000102030405060708090a0b",
+        "plain": "566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93",
+        "aad": "564547412d4c414e2d32206368756e6b7c337c333134353732387c3935",
+        "cipherText": "cb3a5812ca93fa2c4389f0450ed2b430fac0ec3eac8b04f9ae0437bca42ff7b979b16ea7c6b709296c397cba4e9af0cfde0bb5e400afd80aee48b69b8d02d9601147ac4b122bfd813b17a27424f14539fa93f2d980278c34fe2f0778c5bbc0",
+        "mac": "173068bcfadb3bbde86cac8491e5eedf"
+      }
+    }
+  ]
+}

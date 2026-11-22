@@ -1,0 +1,168 @@
+<title>Vega Handshake Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@600;700&display=swap">
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--fg:#0a1f44;--mut:#5b6b88;--line:#dde3f0;--acc:#0a63d6;--gold:#a9772a;--ok:#0f7b4a;--okbg:#e2f5ec;--bad:#b3261e;--badbg:#fdeceb;--code:#eef2fa}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#06132b;--card:#0c2147;--fg:#eaf1ff;--mut:#9db0d3;--line:#1d3769;--acc:#5aa2ff;--gold:#e4c788;--ok:#58d6a0;--okbg:#0d3a2b;--bad:#ff8a80;--badbg:#431a1a;--code:#081a38;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#06132b;--card:#0c2147;--fg:#eaf1ff;--mut:#9db0d3;--line:#1d3769;--acc:#5aa2ff;--gold:#e4c788;--ok:#58d6a0;--okbg:#0d3a2b;--bad:#ff8a80;--badbg:#431a1a;--code:#081a38;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 Inter,system-ui,sans-serif;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:720px;margin:0 auto}
+h1{font:700 26px/1.2 "Space Grotesk",Inter,sans-serif;margin:0 0 4px;text-wrap:balance}
+h2{font:700 17px "Space Grotesk",Inter,sans-serif;margin:0 0 10px;color:var(--gold)}
+p.sub{margin:0 0 18px;color:var(--mut)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px;min-width:0}
+button{font:600 14px Inter,sans-serif;background:var(--acc);color:#fff;border:0;border-radius:10px;padding:10px 16px;cursor:pointer}
+button.alt{background:transparent;color:var(--acc);border:1px solid var(--acc)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}
+.sw{display:flex;gap:6px;align-items:center;font-size:14px}
+.phones{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.ph{background:var(--code);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center;min-width:0}
+.ph small{display:block;color:var(--mut);font-size:11px;letter-spacing:.07em;text-transform:uppercase}
+.sas{font:700 30px "Space Grotesk",monospace;letter-spacing:.12em;margin-top:4px}
+.log{margin-top:12px;font:12.5px/1.6 ui-monospace,monospace;background:var(--code);border-radius:10px;padding:10px;overflow-wrap:anywhere;max-height:240px;overflow:auto}
+.t{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line);font-size:14px}
+.t:first-child{border-top:0}
+.dot{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700}
+.dot.p{background:var(--okbg);color:var(--ok)}.dot.f{background:var(--badbg);color:var(--bad)}
+.sum{font:700 18px "Space Grotesk",sans-serif;margin-bottom:6px}
+.note{font-size:13px;color:var(--mut);margin-top:8px}
+code{font:13px ui-monospace,monospace;background:var(--code);padding:1px 5px;border-radius:5px}
+</style>
+<div class="wrap">
+<h1>Vega Handshake Lab</h1>
+<p class="sub">Hissa B ka secure handshake (X25519, HKDF, AES-256-GCM) browser ki asli crypto se chala kar dekhiye. Ye protocol ka test hai, Flutter app ka nahi.</p>
+
+<div class="card"><h2>1. Do phone ka handshake</h2>
+<div class="row" style="margin-top:0">
+<label class="sw"><input type="checkbox" id="qr" checked> QR scan kiya</label>
+<label class="sw"><input type="checkbox" id="enc" checked> Encrypted</label>
+</div>
+<div class="row"><button id="go">Handshake chalao</button></div>
+<div class="phones"><div class="ph"><small>Sender ka match code</small><div class="sas" id="s1">······</div></div><div class="ph"><small>Receiver ka match code</small><div class="sas" id="s2">······</div></div></div>
+<div class="log" id="log">Button dabaiye.</div>
+<p class="note">QR mode me receiver pehchana jaata hai. Bina QR (nearby list) me encryption hota hai par pehchaan nahi, isliye dono phone par ye 6 ank milaane chahiye.</p></div>
+
+<div class="card"><h2>2. Hamle jo fail hone chahiye</h2>
+<div class="row" style="margin-top:0"><button id="atk">Sab hamle chalao</button></div>
+<div id="alist"></div></div>
+
+<div class="card"><h2>3. Resume: connection toot jaye to</h2>
+<div class="row" style="margin-top:0"><button id="rs1">3 baar connection todo</button><button class="alt" id="rs2">Nakli sender resume kare</button></div>
+<div class="log" id="rlog">Button dabaiye.</div>
+<p class="note">Sender 5 baar tak khud dobara judta hai. Receiver adhoori file 10 minute rakhta hai. Resume tabhi chalta hai jab sender purane session ka saboot de (naye handshake se bandha hua, to replay nahi ho sakta).</p></div>
+
+<div class="card"><h2>4. Reference vectors (Node ke saath milan)</h2>
+<div class="row" style="margin-top:0"><button id="vec">Vectors check karo</button></div>
+<div class="sum" id="vsum"></div><div id="vlist"></div>
+<p class="note">RFC 7748 ki X25519 value, aur Node me bane 4 cases (key, confirm, match code, chunk). Dart app me yehi vectors <code>flutter test</code> se check honge.</p></div>
+</div>
+<script>
+const VECTORS={"label": "VEGA-LAN-2", "rfc7748": {"sharedHex": "4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742"}, "cases": [{"qr": true, "encrypted": true, "params": {"totalBytes": 123456789, "chunkSize": 1048576, "fileName": "फोटो 1.jpg", "taskId": "task_0123-ABC"}, "ephemeralSender": {"seed": "77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a", "pub": "8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a"}, "ephemeralReceiver": {"seed": "5dab087e624a8a4b79e17f8b83800ee66f3bb1292618b6fd1c2f8b27ff88e0eb", "pub": "de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f"}, "staticReceiver": {"seed": "030a11181f262d343b424950575e656c737a81888f969da4abb2b9c0c7ced5dc", "pub": "bb50ff9e82a574cfbf820e97f60fb9c143ec7415cf514f8cfd98eff59e059614"}, "psk": "00112233445566778899aabbccddeeff", "dhEF": "4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742", "dhER": "9526fe89e7e0cea5b489bfe2b1afe65aeb9c615a1ac364d67f7896378324b45b", "transcript": "1d75964019807240a3436cee399e766018c189ec1a798c3fcab00feaf9928456", "sessionKey": "2a3e7a1af4a6a1e098cf226eaa0451a1859c04d433295fac3a362e55c68bf7c1", "confirmKey": "501146a1807b906192456d62e0d1131140995d92842c14385edfabef06ef3e6e", "resumeKey": "00d3117570e9ed3525d821ab1c0784b11daa062069192f7035062e78c5549acf", "sas": "757557", "resumeProof": "9c523fad887dcc20e5428fa88699e4a0d490bdf16faaf693e2f0dd551d018d31", "resumedConfirm": "154a410c5502cefcb87d798a68336b79ffec4e0592b9a1c6a4e2b18649a7b3c9", "acceptConfirm": "cdf6e0fe2682cd10501992ac738c01cb5497cbb1d73ae31f13a9c8760eee5d85", "doneConfirm": "3c64462887adb203fcfbab3641461e062c4dc9731722e6c3cb4cd4988f564280", "doneArgs": {"ok": true, "sha256Hex": "68381940132f4db7454d56265e7411d1ef7ec83346a0b39571cb74faed94e151", "bytes": 95}, "chunk": {"index": 3, "offset": 3145728, "nonce": "000102030405060708090a0b", "plain": "566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93", "aad": "564547412d4c414e2d32206368756e6b7c337c333134353732387c3935", "cipherText": "2869b5123d8354ee4e9c2f5e59c7129655f8fc5369f9e65c3ec0891d8a38fa6a61e1ccb994478cd827428749b27cc7bade8245b8d54c1f8d6ab36c4f0ed17bed6949977285c44f96528186b33ffa64de53dc7a580e026fa9bc312c36d4305f", "mac": "9072c2f142d12c0a7c49790d05d134af"}}, {"qr": true, "encrypted": false, "params": {"totalBytes": 123456789, "chunkSize": 1048576, "fileName": "फोटो 1.jpg", "taskId": "task_0123-ABC"}, "ephemeralSender": {"seed": "77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a", "pub": "8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a"}, "ephemeralReceiver": {"seed": "5dab087e624a8a4b79e17f8b83800ee66f3bb1292618b6fd1c2f8b27ff88e0eb", "pub": "de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f"}, "staticReceiver": {"seed": "030a11181f262d343b424950575e656c737a81888f969da4abb2b9c0c7ced5dc", "pub": "bb50ff9e82a574cfbf820e97f60fb9c143ec7415cf514f8cfd98eff59e059614"}, "psk": "00112233445566778899aabbccddeeff", "dhEF": "4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742", "dhER": "9526fe89e7e0cea5b489bfe2b1afe65aeb9c615a1ac364d67f7896378324b45b", "transcript": "60596e2be719bd564e514ddcf5cbbc65e5cd2dab765b6b8d4a8a7ba424af8138", "sessionKey": "fec57acbebf58d22426dd5aa5d77d16a1f9bcd412bd99472c254b77f7306dca8", "confirmKey": "d4049b7c53f51d6233ad6c5fce79b2e055a5bde27a21c743c08b220ff5744394", "resumeKey": "d133005e2893e3ac933be8bd5115a3b0cede71a21b9cdcca1b02ebc3360f7282", "sas": "853515", "resumeProof": "0e7a263163ecb277a3359bdb2eff3f123b7f046913b3564f57b9d690998e55fd", "resumedConfirm": "468eb4aeb98e88dc6fb10564d3c95111d4d8a1347acf2ce327500bcc69fc22a9", "acceptConfirm": "203075097e029fbc64e5f66a4b8bea340ebbdcfe869a8e40a679a7eacc1b6fb0", "doneConfirm": "d33e9b8aef4f9fa9568766fc93f275c2235b2bab3e18425a4345c5addb32167d", "doneArgs": {"ok": true, "sha256Hex": "68381940132f4db7454d56265e7411d1ef7ec83346a0b39571cb74faed94e151", "bytes": 95}, "chunk": {"index": 3, "offset": 3145728, "nonce": "000102030405060708090a0b", "plain": "566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93", "aad": "564547412d4c414e2d32206368756e6b7c337c333134353732387c3935", "cipherText": "3d3451a46a922e5ab19471515b1e3a1ea038a2d5cfca945b45c7f4f19b38dfb6025590142ec1016905101848f276a5ea0b32833565c017fe298da3e6980d02e22c261a5a170e86972dc0844b2c76405b8fc0fb5a4bb93fb371830ff3bfd7d2", "mac": "0f0338f5a705c032f9708b621761b390"}}, {"qr": false, "encrypted": true, "params": {"totalBytes": 123456789, "chunkSize": 1048576, "fileName": "फोटो 1.jpg", "taskId": "task_0123-ABC"}, "ephemeralSender": {"seed": "77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a", "pub": "8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a"}, "ephemeralReceiver": {"seed": "5dab087e624a8a4b79e17f8b83800ee66f3bb1292618b6fd1c2f8b27ff88e0eb", "pub": "de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f"}, "staticReceiver": {"seed": "030a11181f262d343b424950575e656c737a81888f969da4abb2b9c0c7ced5dc", "pub": "bb50ff9e82a574cfbf820e97f60fb9c143ec7415cf514f8cfd98eff59e059614"}, "psk": "00112233445566778899aabbccddeeff", "dhEF": "4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742", "dhER": "9526fe89e7e0cea5b489bfe2b1afe65aeb9c615a1ac364d67f7896378324b45b", "transcript": "c9562aec75b946dc027038531fa2fb1186b1fedc8bad89b57d271817f129b7ff", "sessionKey": "f918afc3302046de9e062241849bdf6d9e7982b6eb408137bbbefd089337c109", "confirmKey": "4d7f7b8163836279ab7886e5af84c25162daef8d3720cceac0e7d14bdd88ba54", "resumeKey": "7868e00bf7485e342ce6b9f123689758bfdb1691edb56a92481db5cd7ef6b848", "sas": "569460", "resumeProof": "9f767c49f4e45289d38dda899a289d1ea36216b64813cbebd060ffd22b2b741e", "resumedConfirm": "11cc4865f45ea484a35aee908ca193145376bf003b11f024729822b338b68289", "acceptConfirm": "6f9848ae6719f502fcc6d096b622391f459aa6b8d64aaa99c5eb065e08fe8b38", "doneConfirm": "ea0f44a83b846c7f8cba5867fcc86550fad566748d741190aeafbe9b18d707d1", "doneArgs": {"ok": true, "sha256Hex": "68381940132f4db7454d56265e7411d1ef7ec83346a0b39571cb74faed94e151", "bytes": 95}, "chunk": {"index": 3, "offset": 3145728, "nonce": "000102030405060708090a0b", "plain": "566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93", "aad": "564547412d4c414e2d32206368756e6b7c337c333134353732387c3935", "cipherText": "ecc881efb15ebc31489da2e32b92151e8093483a32bbcd2d8a291b192c16a9ef37a4e95cb43c8c751b6369fc1a6b2af2ef95ffa4a0fd92e4ab001618841e12576f0a2fa027ea7da257f6499eac3c9095ecda99c425e7559411ffd3e349c19a", "mac": "633b33d380d0c3e06851145b4eee797b"}}, {"qr": false, "encrypted": false, "params": {"totalBytes": 123456789, "chunkSize": 1048576, "fileName": "फोटो 1.jpg", "taskId": "task_0123-ABC"}, "ephemeralSender": {"seed": "77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a", "pub": "8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a"}, "ephemeralReceiver": {"seed": "5dab087e624a8a4b79e17f8b83800ee66f3bb1292618b6fd1c2f8b27ff88e0eb", "pub": "de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f"}, "staticReceiver": {"seed": "030a11181f262d343b424950575e656c737a81888f969da4abb2b9c0c7ced5dc", "pub": "bb50ff9e82a574cfbf820e97f60fb9c143ec7415cf514f8cfd98eff59e059614"}, "psk": "00112233445566778899aabbccddeeff", "dhEF": "4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742", "dhER": "9526fe89e7e0cea5b489bfe2b1afe65aeb9c615a1ac364d67f7896378324b45b", "transcript": "201bf6eadb9c2760f9e6be9b0bc0c7038472bdf82d637cb82d05cc7f89783282", "sessionKey": "e489a9557ca58771091a86c7dfbd9daabab6af8a87bac9baa3edbf88871b4d9f", "confirmKey": "b85abbfd8b612c794f73986afbe099d48bf1072fd49a2b33c9c93c151a26ed7e", "resumeKey": "321f36636d86374191efe793e7f600b089f00ea8e9654bb106af590357a8b9c1", "sas": "610928", "resumeProof": "0b4198543ade999f669ad76c91b459da0140ae5b4d5f08fe153137a9b477298e", "resumedConfirm": "c2d74b80a90e0eb393db867577fb8de6e3d4375ec718a92fe55b3936e58c2ab6", "acceptConfirm": "9152ac4f3d4d57c3c032e472173a648acf62d6d994324d3aeaef5eb6624fbc95", "doneConfirm": "f274c7503a6ba0c536baabf576fb3eb9bc6d5d0a42fafafefda688b757672f5c", "doneArgs": {"ok": true, "sha256Hex": "68381940132f4db7454d56265e7411d1ef7ec83346a0b39571cb74faed94e151", "bytes": 95}, "chunk": {"index": 3, "offset": 3145728, "nonce": "000102030405060708090a0b", "plain": "566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93566567612074657374206368756e6b20e29c93", "aad": "564547412d4c414e2d32206368756e6b7c337c333134353732387c3935", "cipherText": "cb3a5812ca93fa2c4389f0450ed2b430fac0ec3eac8b04f9ae0437bca42ff7b979b16ea7c6b709296c397cba4e9af0cfde0bb5e400afd80aee48b69b8d02d9601147ac4b122bfd813b17a27424f14539fa93f2d980278c34fe2f0778c5bbc0", "mac": "173068bcfadb3bbde86cac8491e5eedf"}}]};
+const enc=new TextEncoder(),dec=new TextDecoder(),$=id=>document.getElementById(id);
+const hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
+const unhex=h=>Uint8Array.from(h.match(/../g)||[],x=>parseInt(x,16));
+const cat=(...a)=>{const n=a.reduce((s,x)=>s+x.length,0),o=new Uint8Array(n);let i=0;for(const x of a){o.set(x,i);i+=x.length}return o};
+const u16=n=>{const b=new Uint8Array(2);new DataView(b.buffer).setUint16(0,n);return b};
+const u32=n=>{const b=new Uint8Array(4);new DataView(b.buffer).setUint32(0,n);return b};
+const u64=n=>{const b=new Uint8Array(8);new DataView(b.buffer).setBigUint64(0,BigInt(n));return b};
+const LABEL='VEGA-LAN-2';
+const S=crypto.subtle;
+const P8=unhex('302e020100300506032b656e04220420');
+async function fromSeed(seed){const priv=await S.importKey('pkcs8',cat(P8,seed),{name:'X25519'},true,['deriveBits']);const jwk=await S.exportKey('jwk',priv);const x=jwk.x.replace(/-/g,'+').replace(/_/g,'/');const pub=Uint8Array.from(atob(x+'=='.slice(0,(4-x.length%4)%4)),c=>c.charCodeAt(0));return{priv,pub}}
+async function newPair(){return fromSeed(crypto.getRandomValues(new Uint8Array(32)))}
+async function dh(priv,pubBytes){const pub=await S.importKey('raw',pubBytes,{name:'X25519'},false,[]);const bits=new Uint8Array(await S.deriveBits({name:'X25519',public:pub},priv,256));if(bits.every(b=>b===0))throw new Error('low-order key');return bits}
+async function transcript(p,e,f,r){const fn=enc.encode(p.fileName),id=enc.encode(p.taskId);return new Uint8Array(await S.digest('SHA-256',cat(enc.encode(LABEL),Uint8Array.of(0,p.qr?1:0,p.encrypted?1:0),e,f,p.qr?r:new Uint8Array(0),u64(p.totalBytes),u32(p.chunkSize),u16(fn.length),fn,u16(id.length),id)))}
+async function derive(qr,dhEF,dhER,psk,th){const ikm=qr?cat(dhEF,dhER):dhEF,salt=qr?psk:new Uint8Array(32);const base=await S.importKey('raw',ikm,'HKDF',false,['deriveBits']);
+ const k=async n=>new Uint8Array(await S.deriveBits({name:'HKDF',hash:'SHA-256',salt,info:cat(enc.encode(LABEL+' '+n),th)},base,256));
+ const sess=await k('key'),conf=await k('confirm'),sas=await k('sas');const resume=await k('resume');return{sess,conf,resume,sas:String(new DataView(sas.buffer).getUint32(0)%1000000).padStart(6,'0')}}
+async function hmac(key,msg){const k=await S.importKey('raw',key,{name:'HMAC',hash:'SHA-256'},false,['sign']);return new Uint8Array(await S.sign('HMAC',k,msg))}
+const acceptC=(ck,th)=>hmac(ck,cat(enc.encode('accept'),th));
+const doneC=(ck,ok,sha,n)=>hmac(ck,enc.encode(`done:${ok?1:0}:${sha}:${n}`));
+const aad=(i,o,n)=>enc.encode(`${LABEL} chunk|${i}|${o}|${n}`);
+async function seal(key,nonce,a,plain){const k=await S.importKey('raw',key,'AES-GCM',false,['encrypt']);return new Uint8Array(await S.encrypt({name:'AES-GCM',iv:nonce,additionalData:a},k,plain))}
+async function open(key,nonce,a,ct){const k=await S.importKey('raw',key,'AES-GCM',false,['decrypt']);return new Uint8Array(await S.decrypt({name:'AES-GCM',iv:nonce,additionalData:a},k,ct))}
+const eq=(a,b)=>a.length===b.length&&a.every((x,i)=>x===b[i]);
+const sha=async d=>hex(await S.digest('SHA-256',d));
+
+async function session({qr=true,encrypted=true,pskReceiver=null,tamperParams=null}={}){
+ const E=await newPair(),F=await newPair(),R=await newPair();const psk=crypto.getRandomValues(new Uint8Array(16));
+ const p={qr,encrypted,totalBytes:5000,chunkSize:1024,fileName:'photo.jpg',taskId:'task_'+hex(crypto.getRandomValues(new Uint8Array(4)))};
+ // receiver may see altered params if a man-in-the-middle edits init
+ const pr=tamperParams?{...p,...tamperParams}:p;
+ const thS=await transcript(p,E.pub,F.pub,R.pub),thR=await transcript(pr,E.pub,F.pub,R.pub);
+ const ks=await derive(qr,await dh(E.priv,F.pub),qr?await dh(E.priv,R.pub):null,psk,thS);
+ const kr=await derive(qr,await dh(F.priv,E.pub),qr?await dh(R.priv,E.pub):null,pskReceiver||psk,thR);
+ const acc=await acceptC(kr.conf,thR);const accepted=eq(acc,await acceptC(ks.conf,thS));
+ return{E,F,R,p,ks,kr,accepted}}
+
+$('go').onclick=async()=>{const L=$('log');L.textContent='';const log=t=>{L.textContent+=t+'\n'};
+ try{const qr=$('qr').checked,encd=$('enc').checked;const s=await session({qr,encrypted:encd});
+ log('1. Sender ne ephemeral key E banayi, init bheja ('+(qr?'QR mode':'open mode')+')');
+ log('2. Receiver ne ephemeral key F banayi, accept + confirm bheja');
+ log('3. Sender ne confirm check kiya: '+(s.accepted?'sahi':'GALAT'));
+ $('s1').textContent=s.ks.sas;$('s2').textContent=s.kr.sas;
+ log('4. Match code: '+s.ks.sas+' / '+s.kr.sas+(s.ks.sas===s.kr.sas?' (dono same)':' (alag!)'));
+ const plain=crypto.getRandomValues(new Uint8Array(1024));let all=[];
+ for(let i=0;i<4;i++){const nonce=crypto.getRandomValues(new Uint8Array(12));const ct=encd?await seal(s.ks.sess,nonce,aad(i,i*1024,1024),plain):plain;const back=encd?await open(s.kr.sess,nonce,aad(i,i*1024,1024),ct):ct;all.push(eq(back,plain))}
+ log('5. 4 chunk '+(encd?'encrypt karke bheje, receiver ne khole: ':'bina encryption bheje: ')+(all.every(Boolean)?'sab sahi':'galat'));
+ const d=await sha(plain);const c=await doneC(s.kr.conf,true,d,4096);const okc=eq(c,await doneC(s.ks.conf,true,d,4096));
+ log('6. Receiver ka done-confirm sender ne verify kiya: '+(okc?'sahi, ab "verified" dikha sakte hain':'GALAT'));
+ }catch(e){log('Error: '+e.message+(String(e.message).includes('algorithm')?' (is browser me X25519 support nahi hai)':''))}};
+
+$('atk').onclick=async()=>{const out=[];const add=(n,ok,m='')=>out.push([n,ok,m]);
+ try{
+ {const s=await session({tamperParams:{encrypted:false}});add('Beech me koi encryption band kare (downgrade): receiver ka confirm sender reject karta hai',!s.accepted)}
+ {const s=await session({tamperParams:{fileName:'virus.exe'}});add('Beech me file ka naam badle: confirm fail',!s.accepted)}
+ {const s=await session({pskReceiver:crypto.getRandomValues(new Uint8Array(16))});add('Galat QR secret wala nakli receiver: confirm fail',!s.accepted)}
+ {const s=await session();const n=crypto.getRandomValues(new Uint8Array(12));const pl=new Uint8Array(100).fill(9);const ct=await seal(s.ks.sess,n,aad(2,2048,100),pl);let f=false;try{await open(s.kr.sess,n,aad(3,2048,100),ct)}catch{f=true}add('Chunk ko dusre number par replay/reorder karna: decrypt fail',f)}
+ {const s=await session();const n=crypto.getRandomValues(new Uint8Array(12));const pl=new Uint8Array(100).fill(9);const ct=await seal(s.ks.sess,n,aad(0,0,100),pl);ct[5]^=1;let f=false;try{await open(s.kr.sess,n,aad(0,0,100),ct)}catch{f=true}add('Chunk ka ek bit badalna: decrypt fail',f)}
+ {const s=await session();const d=await sha(new Uint8Array(10));const real=await doneC(s.kr.conf,false,d,10);const forged=await doneC(s.ks.conf,true,d,10);add('"Fail" ko "ok" bana kar bhejna: MAC alag, sender pakad leta hai',!eq(real,forged))}
+ {const k=await newPair();let f=false;try{await dh(k.priv,new Uint8Array(32))}catch{f=true}add('Kamzor (low-order) public key: reject',f)}
+ {const a=await session({qr:false}),b=await session({qr:false});add('Har session ki key alag (forward secrecy ke liye ephemeral keys)',!eq(a.ks.sess,b.ks.sess))}
+ }catch(e){add('Test chalne me error',false,e.message)}
+ $('alist').innerHTML=out.map(([n,ok,m])=>`<div class="t"><span class="dot ${ok?'p':'f'}">${ok?'✓':'✗'}</span><span>${n}${m?'<br><code>'+m+'</code>':''}</span></div>`).join('')};
+
+$('vec').onclick=async()=>{const T=[];const t=async(n,f)=>{try{T.push([n,(await f())!==false,''])}catch(e){T.push([n,false,e.message])}};
+ await t('RFC 7748: X25519 shared secret',async()=>{const a=await fromSeed(unhex('77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a'));return hex(await dh(a.priv,unhex('de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f')))==='4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742'});
+ for(const c of VECTORS.cases){await t(`Case qr=${c.qr} encrypted=${c.encrypted}: transcript, keys, match code, confirms, chunk`,async()=>{
+  const e=await fromSeed(unhex(c.ephemeralSender.seed)),f=await fromSeed(unhex(c.ephemeralReceiver.seed)),r=await fromSeed(unhex(c.staticReceiver.seed));
+  const th=await transcript({...c.params,qr:c.qr,encrypted:c.encrypted},e.pub,f.pub,r.pub);if(hex(th)!==c.transcript)return false;
+  const k=await derive(c.qr,await dh(e.priv,f.pub),c.qr?await dh(e.priv,r.pub):null,unhex(c.psk),th);
+  if(hex(k.sess)!==c.sessionKey||hex(k.conf)!==c.confirmKey||hex(k.resume)!==c.resumeKey||k.sas!==c.sas)return false;
+  if(hex(await resumeProof(k.resume,th))!==c.resumeProof||hex(await resumedC(k.conf,3145728,3))!==c.resumedConfirm)return false;
+  if(hex(await acceptC(k.conf,th))!==c.acceptConfirm)return false;
+  const d=c.doneArgs;if(hex(await doneC(k.conf,d.ok,d.sha256Hex,d.bytes))!==c.doneConfirm)return false;
+  const ch=c.chunk;const ct=cat(unhex(ch.cipherText),unhex(ch.mac));const pl=await open(k.sess,unhex(ch.nonce),unhex(ch.aad),ct);return hex(pl)===ch.plain})}
+ const p=T.filter(x=>x[1]).length;$('vsum').textContent=p+' / '+T.length+' pass'+(p===T.length?' ✓':'');
+ $('vlist').innerHTML=T.map(([n,ok,m])=>`<div class="t"><span class="dot ${ok?'p':'f'}">${ok?'✓':'✗'}</span><span>${n}${m?'<br><code>'+m+'</code>':''}</span></div>`).join('')};
+
+const resumeProof=(rk,th)=>hmac(rk,cat(enc.encode('resume'),th));
+const resumedC=(ck,o,i)=>hmac(ck,enc.encode(`resumed:${o}:${i}`));
+async function resumeDemo(drops,tamper,log){
+ const CH=1024,file=crypto.getRandomValues(new Uint8Array(CH*10+300)),id='task_demo';
+ const partials=new Map();let offset=0,index=0,rk=null,attempts=0,saved=null;
+ for(;;){
+  const E=await newPair(),F=await newPair();
+  const p={qr:false,encrypted:true,totalBytes:file.length,chunkSize:CH,fileName:'a.bin',taskId:id};
+  const th=await transcript(p,E.pub,F.pub,new Uint8Array(0));
+  const ks=await derive(false,await dh(E.priv,F.pub),null,null,th),kr=await derive(false,await dh(F.priv,E.pub),null,null,th);
+  let rOff=0,rIdx=0,rbytes=[];
+  if(rk){log(`Dobara connect (koshish ${attempts}): sender saboot bhej raha hai`);
+   const cand=partials.get(id);const proof=await resumeProof(tamper?crypto.getRandomValues(new Uint8Array(32)):rk,th);
+   if(cand){if(!eq(await resumeProof(cand.rk,th),proof)){log('Receiver: saboot galat, REJECT. Adhoori file koi aur nahi jod sakta.');return false}
+    partials.delete(id);rOff=cand.bytes.length;rIdx=cand.index;rbytes=[...cand.bytes]}
+   if(!eq(await resumedC(kr.conf,rOff,rIdx),await resumedC(ks.conf,rOff,rIdx)))throw new Error('resumed confirm');
+   offset=rOff;index=rIdx;log(`Receiver ne confirm kiya: ${rOff} byte tak mil chuka, wahin se aage (chunk ${rIdx})`)}
+  rk=ks.resume;let dropped=false;
+  while(offset<file.length){
+   if(drops.length&&index===drops[0]){drops.shift();partials.set(id,{rk:kr.resume,bytes:new Uint8Array(rbytes),index});log(`Connection toota (chunk ${index} par). Receiver ne ${rbytes.length} byte rakh liye`);dropped=true;break}
+   const pl=file.subarray(offset,Math.min(offset+CH,file.length)),n=crypto.getRandomValues(new Uint8Array(12));
+   const ct=await seal(ks.sess,n,aad(index,offset,pl.length),pl);const back=await open(kr.sess,n,aad(index,offset,pl.length),ct);
+   rbytes.push(...back);offset+=pl.length;index++}
+  if(dropped){attempts++;continue}
+  saved=new Uint8Array(rbytes);break}
+ const ok=(await sha(saved))===(await sha(file));
+ log(`Poori file mili: ${saved.length} byte, SHA-256 ${ok?'bilkul same':'ALAG'} (${attempts} baar resume hua)`);return ok}
+$('rs1').onclick=async()=>{const L=$('rlog');L.textContent='';const lg=t=>{L.textContent+=t+'\n'};try{await resumeDemo([2,5,8],false,lg)}catch(e){lg('Error: '+e.message)}};
+$('rs2').onclick=async()=>{const L=$('rlog');L.textContent='';const lg=t=>{L.textContent+=t+'\n'};try{await resumeDemo([4],true,lg)}catch(e){lg('Error: '+e.message)}};
+</script>

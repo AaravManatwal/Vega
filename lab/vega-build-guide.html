@@ -1,0 +1,51 @@
+<title>Vega Build Guide</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@600;700&display=swap">
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--fg:#0a1f44;--mut:#5b6b88;--line:#dde3f0;--acc:#0a63d6;--gold:#a9772a;--ok:#0f7b4a;--okbg:#e2f5ec;--warn:#8a5a00;--warnbg:#fff3d6;--code:#eef2fa}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#06132b;--card:#0c2147;--fg:#eaf1ff;--mut:#9db0d3;--line:#1d3769;--acc:#5aa2ff;--gold:#e4c788;--ok:#58d6a0;--okbg:#0d3a2b;--warn:#ffd27a;--warnbg:#3b2d0a;--code:#081a38;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#06132b;--card:#0c2147;--fg:#eaf1ff;--mut:#9db0d3;--line:#1d3769;--acc:#5aa2ff;--gold:#e4c788;--ok:#58d6a0;--okbg:#0d3a2b;--warn:#ffd27a;--warnbg:#3b2d0a;--code:#081a38;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 Inter,system-ui,sans-serif;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:720px;margin:0 auto}
+h1{font:700 26px/1.2 "Space Grotesk",Inter,sans-serif;margin:0 0 4px;text-wrap:balance}
+h2{font:700 17px "Space Grotesk",Inter,sans-serif;margin:0 0 10px;color:var(--gold)}
+p.sub{margin:0 0 18px;color:var(--mut)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px;min-width:0}
+.ph{display:flex;gap:10px;padding:9px 0;border-top:1px solid var(--line);align-items:flex-start}
+.ph:first-of-type{border-top:0}
+.tag{flex:none;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 9px;margin-top:2px}
+.tag.done{background:var(--okbg);color:var(--ok)}.tag.next{background:var(--warnbg);color:var(--warn)}.tag.todo{background:var(--code);color:var(--mut)}
+.ph b{display:block}.ph span{color:var(--mut);font-size:14px}
+ol{padding-left:0;margin:0;list-style:none;counter-reset:s}
+ol li{counter-increment:s;display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+ol li:first-child{border-top:0}
+ol li::before{content:counter(s);flex:none;width:26px;height:26px;border-radius:50%;background:var(--acc);color:#fff;font-weight:700;display:grid;place-items:center;font-size:13px;margin-top:1px}
+ol li div{min-width:0}
+code{font:13px ui-monospace,monospace;background:var(--code);padding:1px 5px;border-radius:5px;overflow-wrap:anywhere}
+.note{font-size:13px;color:var(--mut);margin-top:8px}
+a{color:var(--acc)}
+</style>
+<div class="wrap">
+<h1>Vega Build Guide</h1>
+<p class="sub">Sirf phone se Vega ka APK banane ka tareeka, aur ab tak ka hisaab.</p>
+
+<div class="card"><h2>Ab tak ka hisaab</h2>
+<div class="ph"><span class="tag done">Ho gaya</span><div><b>A. Security fixes</b><span>Server auth, vault <code>..</code> bug, pairing hijack, portal key, safe file naam.</span></div></div>
+<div class="ph"><span class="tag done">Ho gaya</span><div><b>B. Secure handshake</b><span>X25519 + HKDF + AES-GCM, QR se pehchaan, match code, sach wala "verified".</span></div></div>
+<div class="ph"><span class="tag done">Ho gaya</span><div><b>C. Naam aur build</b><span>Sab jagah Vega, release signing ki galti, cleartext band, CI se debug APK.</span></div></div>
+<div class="ph"><span class="tag next">Agla</span><div><b>D. Features aur tests</b><span>Resume, folder transfer, Windows scaffold, approval/match-code screen (UI, aapki haan ke baad).</span></div></div>
+<div class="ph"><span class="tag todo">Baad me</span><div><b>UI/UX, animation, unique features</b><span>Aapka asli maqsad. Design pehle aapko dikhaunga.</span></div></div></div>
+
+<div class="card"><h2>Phone se APK kaise banayein</h2>
+<ol>
+<li><div><b>GitHub account aur naya repo</b><br>Phone ke browser me github.com par login, <code>New repository</code> banaiye (Private rakhna theek hai).</div></li>
+<li><div><b>Zip ke andar ki files upload kijiye</b><br>Zip ko pehle phone me extract kijiye (Files app). Repo me <code>Add file → Upload files</code> se saari files aur folders daliye. <code>.github</code> folder zaroor jaana chahiye, kyunki build usi me hai.</div></li>
+<li><div><b>Actions chalne dijiye</b><br>Repo ke <code>Actions</code> tab me "Vega CI/CD Pipeline" apne aap chalegi. Teen kaam hote hain: web tests, Flutter tests, aur debug APK.</div></li>
+<li><div><b>APK download kijiye</b><br>Run poora hone par us run ke neeche <code>Artifacts → vega-debug-apk</code> dabaiye. Zip aayegi, usme <code>app-debug.apk</code> hai.</div></li>
+<li><div><b>Install</b><br>APK kholiye, "Install unknown apps" ki ijazat dijiye. Android 13 ya usse upar wale phone par hi chalega.</div></li>
+</ol>
+<p class="note">Agar koi step laal (fail) ho to us step ka log ka screenshot ya text mujhe bhej dijiye, main theek kar dunga. Dart code abhi tak kisi compiler par nahi chala, isliye pehle run me chhoti galtiyan aa sakti hain.</p></div>
+
+<div class="card"><h2>Release (Play Store) ke liye</h2>
+<p style="margin:0">Release build ab bina signing key ke fail hota hai (jaan boojhkar). Testing ke liye debug APK hi use kijiye. Play Store tab dekhenge jab app taiyar ho.</p></div>
+</div>
