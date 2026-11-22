@@ -474,6 +474,7 @@ class _SendScreenState extends State<SendScreen> {
                     ),
                   ),
                 ),
+              ),
               ],
             ),
           ),
