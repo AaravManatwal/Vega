@@ -38,7 +38,8 @@ class _VegaHeaderState extends State<VegaHeader> with SingleTickerProviderStateM
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
+        Flexible(
+          child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             ExcludeSemantics(
@@ -51,17 +52,24 @@ class _VegaHeaderState extends State<VegaHeader> with SingleTickerProviderStateM
               ),
             ),
             const SizedBox(width: 8),
-            Text(
-              'VEGA · वेग',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: VegaColors.goldHighlight,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.8,
-                  ),
+            Flexible(
+              child: Text(
+                'VEGA · वेग',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: VegaColors.goldHighlight,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.8,
+                    ),
+              ),
             ),
           ],
         ),
-        Container(
+        ),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(999),
@@ -69,10 +77,13 @@ class _VegaHeaderState extends State<VegaHeader> with SingleTickerProviderStateM
           ),
           child: Text(
             widget.mode,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: Theme.of(context)
                 .textTheme
                 .labelMedium
                 ?.copyWith(color: cs.onSurfaceVariant),
+          ),
           ),
         ),
       ],
