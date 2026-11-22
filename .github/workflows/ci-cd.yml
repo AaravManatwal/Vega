@@ -68,6 +68,8 @@ jobs:
   android-debug-apk:
     runs-on: ubuntu-latest
     needs: flutter-tests
+    permissions:
+      contents: write
     defaults:
       run:
         working-directory: flutter_app
@@ -88,3 +90,13 @@ jobs:
         with:
           name: vega-debug-apk
           path: flutter_app/build/app/outputs/flutter-apk/app-debug.apk
+      - name: Publish APK as a GitHub Release (direct download link for the phone)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp build/app/outputs/flutter-apk/app-debug.apk vega-debug.apk
+          gh release delete latest --cleanup-tag --yes || true
+          gh release create latest vega-debug.apk --prerelease \
+            --title "Vega debug build (latest)" \
+            --notes "Debug APK from commit ${{ github.sha }}. Install on Android 13 or newer."
