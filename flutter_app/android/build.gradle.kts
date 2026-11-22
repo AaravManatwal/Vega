@@ -13,6 +13,15 @@ subprojects {
     project.layout.buildDirectory.value(newSubprojectBuildDir)
 }
 
+// Some plugins still compile against an old Android API; the AndroidX libraries they
+// pull in need 36. Raise every plugin library to the same compileSdk as the app.
+subprojects {
+    afterEvaluate {
+        (extensions.findByName("android") as? com.android.build.api.dsl.LibraryExtension)
+            ?.compileSdk = 36
+    }
+}
+
 subprojects {
     project.evaluationDependsOn(":app")
 }
