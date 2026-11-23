@@ -102,6 +102,8 @@ class VegaController extends StateNotifier<VegaState> {
     final chunkKb = prefs.getInt('chunk_kb') ?? 1024;
     final encrypt = prefs.getBool('encrypt_transfers') ?? true;
     final dark = prefs.getBool('dark_mode') ?? true;
+    final language = prefs.getString('language') ?? 'en';
+    final alerts = prefs.getBool('alerts') ?? true;
 
     final history = await HistoryDb.loadRecent();
     final ips = await PlatformBridge.getLocalIpv4Addresses();
@@ -112,6 +114,8 @@ class VegaController extends StateNotifier<VegaState> {
         chunkSizeKb: chunkKb,
         encryptTransfers: encrypt,
         darkMode: dark,
+        language: language,
+        alerts: alerts,
       ),
       history: history,
       localIps: ips,
@@ -326,6 +330,8 @@ class VegaController extends StateNotifier<VegaState> {
     await prefs.setInt('chunk_kb', next.chunkSizeKb);
     await prefs.setBool('encrypt_transfers', next.encryptTransfers);
     await prefs.setBool('dark_mode', next.darkMode);
+    await prefs.setString('language', next.language);
+    await prefs.setBool('alerts', next.alerts);
     state = state.copyWith(settings: next);
   }
 

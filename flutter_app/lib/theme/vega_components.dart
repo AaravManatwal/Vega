@@ -9,9 +9,11 @@ class VegaComponents {
 
   static TextTheme textTheme(TextTheme base) {
     return base.copyWith(
-      headlineMedium: base.headlineMedium?.copyWith(fontWeight: FontWeight.w700),
-      headlineSmall: base.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
-      titleLarge: base.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+      // Display text uses the serif face, like the web design's heritage headings.
+      displaySmall: base.displaySmall?.copyWith(fontFamily: 'serif', fontWeight: FontWeight.w700),
+      headlineMedium: base.headlineMedium?.copyWith(fontFamily: 'serif', fontWeight: FontWeight.w700),
+      headlineSmall: base.headlineSmall?.copyWith(fontFamily: 'serif', fontWeight: FontWeight.w700),
+      titleLarge: base.titleLarge?.copyWith(fontFamily: 'serif', fontWeight: FontWeight.w700),
       titleMedium: base.titleMedium?.copyWith(fontWeight: FontWeight.w600),
       labelLarge: base.labelLarge?.copyWith(
         fontWeight: FontWeight.w600,
@@ -27,7 +29,7 @@ class VegaComponents {
     return base.copyWith(
       colorScheme: cs,
       scaffoldBackgroundColor:
-          dark ? VegaColors.deepCanvas : VegaColors.lightBackground,
+          dark ? VegaColors.deepNavy : VegaColors.lightBackground,
       textTheme: textTheme(base.textTheme),
       appBarTheme: AppBarTheme(
         backgroundColor: dark ? VegaColors.deepCanvas : VegaColors.deepNavy,

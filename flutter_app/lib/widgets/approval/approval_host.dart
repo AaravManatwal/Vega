@@ -85,7 +85,8 @@ class _ApprovalHostState extends ConsumerState<ApprovalHost> {
 
     // App not in front: tell the user with a notification as well.
     final life = WidgetsBinding.instance.lifecycleState;
-    if (life != null && life != AppLifecycleState.resumed) {
+    final alertsOn = ref.read(vegaProvider).settings.alerts;
+    if (alertsOn && life != null && life != AppLifecycleState.resumed) {
       ApprovalNotifier.instance.showIncoming(
         taskId: req.taskId,
         senderName: req.senderName,

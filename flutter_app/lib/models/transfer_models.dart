@@ -138,24 +138,38 @@ class AppSettings {
   final bool encryptTransfers;
   final bool darkMode;
 
+  /// 'en' or 'hi'.
+  final String language;
+
+  /// Show a notification when a file arrives or finishes.
+  final bool alerts;
+
   const AppSettings({
     required this.deviceName,
     this.chunkSizeKb = 1024,
     this.encryptTransfers = true,
     this.darkMode = true,
+    this.language = 'en',
+    this.alerts = true,
   });
+
+  bool get isHindi => language == 'hi';
 
   AppSettings copyWith({
     String? deviceName,
     int? chunkSizeKb,
     bool? encryptTransfers,
     bool? darkMode,
+    String? language,
+    bool? alerts,
   }) {
     return AppSettings(
       deviceName: deviceName ?? this.deviceName,
       chunkSizeKb: chunkSizeKb ?? this.chunkSizeKb,
       encryptTransfers: encryptTransfers ?? this.encryptTransfers,
       darkMode: darkMode ?? this.darkMode,
+      language: language ?? this.language,
+      alerts: alerts ?? this.alerts,
     );
   }
 }

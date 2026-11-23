@@ -8,10 +8,27 @@ class VegaColors {
   static const Color cardMidnight = Color(0xFF0B2552);
   static const Color borderMidnight = Color(0xFF1E3A6B);
   static const Color midnightBlue = Color(0xFF003366);
-  static const Color electricBlue = Color(0xFF007AFF);
-  static const Color vibrantOrange = Color(0xFF007AFF);
+  // Saffron-orange is the accent of the Vega web design. The old names below
+  // (electricBlue, vibrantOrange) now point to it so every screen follows the design.
+  static const Color saffron = Color(0xFFD96B08);
+  static const Color saffronLight = Color(0xFFE06D06);
+  static const Color saffronDeep = Color(0xFFC85A00);
+  static const Color saffronDark = Color(0xFFB84E00);
+  static const Color saffronShade = Color(0xFF9E4100);
+  static const Color goldBorder = Color(0xFFF5D08A);
+  static const Color goldPale = Color(0xFFFFE7BA);
+  static const Color ivory = Color(0xFFFFFDF8);
+  static const Color ivorySand = Color(0xFFF7F1E2);
+  static const Color ivoryDeep = Color(0xFFEDE2C8);
+  static const Color parchment = Color(0xFFFAF6EC);
+  static const Color cream = Color(0xFFFFF5E6);
+  static const Color brownText = Color(0xFF6B5A3E);
+  static const Color brownMuted = Color(0xFF7A633C);
+  static const Color electricBlue = saffron;
+  static const Color vibrantOrange = saffron;
   static const Color skyAccent = Color(0xFFC5A059); // Gold-Leaf Accent
   static const Color lightSky = Color(0xFFDBEAFE);
+  static const Color skyText = Color(0xFF93C5FD);
 
   // Dedicated Gold-Leaf Heritage Tokens
   static const Color sandstoneGold = Color(0xFFC5A059);
@@ -28,8 +45,8 @@ class VegaColors {
   static const Color warning = Color(0xFFF59E0B);
   static const Color error = Color(0xFFDC2626);
 
-  /// Button blue. Electric blue with white text is only 4:1; this reaches 5.3:1.
-  static const Color actionBlue = Color(0xFF0062DB);
+  /// Main button color (saffron-deep, white text reaches 4.6:1).
+  static const Color actionBlue = saffronDeep;
 
   /// Readable text/icon tones on the dark navy surfaces (all above 4.5:1).
   static const Color onNavy = Color(0xFFF1F5FF);

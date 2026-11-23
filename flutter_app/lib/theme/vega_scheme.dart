@@ -9,14 +9,14 @@ import 'vega_colors.dart';
 class VegaScheme {
   static ColorScheme dark() {
     final base = ColorScheme.fromSeed(
-      seedColor: VegaColors.electricBlue,
+      seedColor: VegaColors.saffron,
       brightness: Brightness.dark,
     );
     return base.copyWith(
       primary: VegaColors.actionBlue,
       onPrimary: Colors.white,
-      primaryContainer: VegaColors.midnightBlue,
-      onPrimaryContainer: VegaColors.lightSky,
+      primaryContainer: const Color(0xFF4A2A0C),
+      onPrimaryContainer: VegaColors.goldPale,
       tertiary: VegaColors.goldHighlight,
       onTertiary: VegaColors.deepCanvas,
       tertiaryContainer: const Color(0xFF3A2E12),
@@ -36,14 +36,14 @@ class VegaScheme {
 
   static ColorScheme light() {
     final base = ColorScheme.fromSeed(
-      seedColor: VegaColors.electricBlue,
+      seedColor: VegaColors.saffron,
       brightness: Brightness.light,
     );
     return base.copyWith(
       primary: VegaColors.actionBlue,
       onPrimary: Colors.white,
-      primaryContainer: VegaColors.lightSky,
-      onPrimaryContainer: VegaColors.midnightBlue,
+      primaryContainer: VegaColors.cream,
+      onPrimaryContainer: const Color(0xFF6B3200),
       tertiary: const Color(0xFF8A6A1F), // gold dark enough for text on white
       onTertiary: Colors.white,
       tertiaryContainer: const Color(0xFFF6E7C1),
