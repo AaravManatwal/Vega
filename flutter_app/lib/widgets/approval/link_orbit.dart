@@ -300,7 +300,7 @@ class _OrbitPainter extends CustomPainter {
     final tp = TextPainter(
       text: TextSpan(
         text: text,
-        style: const TextStyle(
+        style: TextStyle(
           color: glyph,
           fontSize: 12,
           fontWeight: FontWeight.w600,

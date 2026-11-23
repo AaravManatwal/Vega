@@ -356,3 +356,9 @@ final vegaProvider =
     StateNotifierProvider<VegaController, VegaState>(
   (ref) => VegaController(),
 );
+
+/// True when the app language is Hindi. A separate provider so small screens (and their
+/// tests) can read the language without building the whole controller.
+final hindiProvider = Provider<bool>(
+  (ref) => ref.watch(vegaProvider.select((s) => s.settings.isHindi)),
+);

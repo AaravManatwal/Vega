@@ -29,7 +29,7 @@ class ApprovalScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final hi = ref.watch(vegaProvider.select((s) => s.settings.isHindi));
+    final hi = ref.watch(hindiProvider);
     final str = ApprovalStrings(VegaStrings(hi));
     final verified = request.authenticated;
 
