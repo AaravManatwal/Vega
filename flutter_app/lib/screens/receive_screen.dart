@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import '../l10n/vega_strings.dart';
 import '../models/transfer_models.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
+import '../widgets/heritage/heritage_page.dart';
+import '../widgets/heritage/heritage_palette.dart';
+import '../widgets/heritage/heritage_panel.dart';
+import '../widgets/heritage/saffron_button.dart';
 import 'browser_share_screen.dart';
 
 class ReceiveScreen extends ConsumerStatefulWidget {
@@ -29,6 +34,9 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(vegaProvider);
     final controller = ref.read(vegaProvider.notifier);
+    final s = VegaStrings(state.settings.isHindi);
+    final pal = HeritagePalette.of(context);
+    final text = Theme.of(context).textTheme;
     final primaryIp =
         state.localIps.isNotEmpty ? state.localIps.first : '127.0.0.1';
     final port = state.receiverPort ?? 47890;
@@ -39,273 +47,160 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
         .where((t) => t.direction == TransferDirection.receive)
         .toList();
 
-    return Scaffold(
-      backgroundColor: VegaColors.deepCanvas,
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 22),
-          children: [
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    VegaColors.deepNavy,
-                    VegaColors.midnightBlue,
-                  ],
+    return HeritagePage(
+      title: s.t('Receive Files', 'फ़ाइलें प्राप्त करें'),
+      subtitle: s.t('Show this QR to the sender', 'भेजने वाले को यह QR दिखाएँ'),
+      trailing: state.isReceivingReady
+          ? SaffronButton(
+              label: s.t('Stop', 'रोकें'),
+              expand: false,
+              height: 38,
+              fontSize: 13,
+              onPressed: () async {
+                await controller.stopReceivingSession();
+                if (context.mounted) Navigator.pop(context);
+              },
+            )
+          : null,
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          HeritagePanel(
+            radius: 28,
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              children: [
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  activeThumbColor: Colors.white,
+                  activeTrackColor: VegaColors.saffron,
+                  title: Text(
+                    s.t('Local Wi-Fi Hotspot Mode', 'लोकल हॉटस्पॉट मोड'),
+                    style: text.titleSmall?.copyWith(
+                      color: pal.text,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  subtitle: Text(
+                    s.t(
+                      'Enable if no common Wi-Fi router is available',
+                      'जब कोई साझा Wi-Fi राउटर न हो तब चालू करें',
+                    ),
+                    style: text.bodySmall?.copyWith(color: pal.textMuted),
+                  ),
+                  value: _useHotspot,
+                  onChanged: (value) async {
+                    setState(() => _useHotspot = value);
+                    await controller.startReceivingSession(withHotspot: value);
+                  },
                 ),
-                borderRadius: BorderRadius.circular(28),
-                border: Border.all(
-                  color: VegaColors.sandstoneGold.withValues(alpha: 0.55),
-                  width: 1.4,
+                const SizedBox(height: 14),
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(color: VegaColors.sandstoneGold, width: 2),
+                  ),
+                  child: QrImageView(
+                    data: qrData,
+                    size: 205,
+                    backgroundColor: Colors.white,
+                  ),
                 ),
-              ),
-              child: Column(
-                children: [
-                  // Integrated Header inside the Receive Card
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                const SizedBox(height: 14),
+                GestureDetector(
+                  onTap: () {
+                    Clipboard.setData(ClipboardData(text: '$primaryIp:$port'));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Copied $primaryIp:$port')),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
-                      color: VegaColors.deepCanvas.withValues(alpha: 0.72),
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(
-                        color: VegaColors.sandstoneGold.withValues(alpha: 0.40),
-                      ),
+                      color: pal.field,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: pal.softBorder),
                     ),
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        InkWell(
-                          onTap: () => Navigator.pop(context),
-                          borderRadius: BorderRadius.circular(14),
-                          child: Container(
-                            width: 42,
-                            height: 42,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(14),
-                              color: VegaColors.midnightBlue,
-                              border: Border.all(
-                                color: VegaColors.sandstoneGold.withValues(alpha: 0.55),
-                              ),
-                            ),
-                            child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                        Text(
+                          '$primaryIp:$port',
+                          style: TextStyle(
+                            color: pal.text,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Receive Files · प्राप्त करें',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18.5,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                              Text(
-                                'Show QR to Android or Windows sender',
-                                style: TextStyle(
-                                  color: VegaColors.goldHighlight,
-                                  fontSize: 12.5,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (state.isReceivingReady)
-                          TextButton(
-                            onPressed: () async {
-                              await controller.stopReceivingSession();
-                              if (context.mounted) Navigator.pop(context);
-                            },
-                            child: const Text(
-                              'Stop',
-                              style: TextStyle(
-                                color: VegaColors.goldHighlight,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
+                        const SizedBox(width: 8),
+                        Icon(Icons.copy_rounded, size: 16, color: pal.accentText),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    activeThumbColor: VegaColors.electricBlue,
-                    title: const Text(
-                      'Local Wi-Fi Hotspot Mode',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    subtitle: const Text(
-                      'Enable if no common Wi-Fi router is available',
-                      style: TextStyle(
-                        color: VegaColors.lightSky,
-                        fontSize: 12.5,
-                      ),
-                    ),
-                    value: _useHotspot,
-                    onChanged: (value) async {
-                      setState(() => _useHotspot = value);
-                      await controller.startReceivingSession(
-                        withHotspot: value,
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 14),
-                  Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: VegaColors.sandstoneGold,
-                        width: 2,
-                      ),
-                    ),
-                    child: QrImageView(
-                      data: qrData,
-                      size: 205,
-                      backgroundColor: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  GestureDetector(
-                    onTap: () {
-                      Clipboard.setData(
-                        ClipboardData(text: '$primaryIp:$port'),
-                      );
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Copied $primaryIp:$port'),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: VegaColors.deepCanvas,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: VegaColors.borderMidnight,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            '$primaryIp:$port',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 15,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Icon(
-                            Icons.copy_rounded,
-                            size: 16,
-                            color: VegaColors.lightSky,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  if (state.hotspotInfo != null) ...[
-                    const SizedBox(height: 12),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: VegaColors.deepCanvas,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: VegaColors.electricBlue
-                              .withValues(alpha: 0.5),
-                        ),
-                      ),
-                      child: Text(
-                        'Wi-Fi SSID: ${state.hotspotInfo!.ssid}\nPassword: ${state.hotspotInfo!.password}',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: VegaColors.skyAccent,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                  ],
+                ),
+                if (state.hotspotInfo != null) ...[
                   const SizedBox(height: 12),
-                  const Text(
-                    'Files save automatically into Downloads/Vega with SHA-256 verification.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: VegaColors.lightSky,
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: pal.field,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: VegaColors.saffron.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    child: Text(
+                      'Wi-Fi SSID: ${state.hotspotInfo!.ssid}\nPassword: ${state.hotspotInfo!.password}',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: pal.accentText,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
                 ],
-              ),
-            ),
-            const SizedBox(height: 14),
-            SizedBox(
-              height: 52,
-              child: FilledButton.icon(
-                style: FilledButton.styleFrom(
-                  backgroundColor: VegaColors.electricBlue,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(26),
+                const SizedBox(height: 12),
+                Text(
+                  s.t(
+                    'Files save automatically into Downloads/Vega with SHA-256 verification.',
+                    'फ़ाइलें अपने आप Downloads/Vega में सेव होती हैं और SHA-256 से जाँची जाती हैं।',
                   ),
+                  textAlign: TextAlign.center,
+                  style: text.bodySmall?.copyWith(color: pal.textMuted),
                 ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const BrowserShareScreen(),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.public),
-                label: const Text(
-                  'Open Browser / Windows Portal',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-                ),
-              ),
+              ],
             ),
-            if (receiveTasks.isNotEmpty) ...[
-              const SizedBox(height: 18),
-              const Text(
-                'Incoming Files',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 10),
-              ...receiveTasks.map((task) {
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 10),
+          ),
+          const SizedBox(height: 14),
+          SaffronButton(
+            label: s.t('Open Browser / Windows Portal', 'ब्राउज़र / विंडोज़ पोर्टल खोलें'),
+            icon: Icons.public_rounded,
+            fontSize: 15,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const BrowserShareScreen()),
+              );
+            },
+          ),
+          if (receiveTasks.isNotEmpty) ...[
+            const SizedBox(height: 18),
+            Text(
+              s.t('Incoming Files', 'आने वाली फ़ाइलें'),
+              style: text.titleMedium?.copyWith(color: pal.text, fontFamily: 'serif'),
+            ),
+            const SizedBox(height: 10),
+            ...receiveTasks.map((task) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: HeritagePanel(
+                  tile: true,
+                  radius: 18,
                   padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: VegaColors.deepNavy,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(
-                      color: task.integrityVerified
-                          ? VegaColors.success
-                          : VegaColors.sandstoneGold,
-                    ),
-                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -314,19 +209,20 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
                           Expanded(
                             child: Text(
                               task.fileName,
-                              style: const TextStyle(
-                                color: Colors.white,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: text.titleSmall?.copyWith(
+                                color: pal.text,
                                 fontWeight: FontWeight.w700,
                               ),
-                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           Text(
                             task.status.name.toUpperCase(),
-                            style: const TextStyle(
-                              color: VegaColors.goldHighlight,
+                            style: TextStyle(
+                              color: pal.accentText,
                               fontSize: 11.5,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
                         ],
@@ -334,16 +230,13 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
                       const SizedBox(height: 8),
                       LinearProgressIndicator(
                         value: task.progress,
-                        color: VegaColors.electricBlue,
-                        backgroundColor: VegaColors.borderMidnight,
+                        color: VegaColors.saffron,
+                        backgroundColor: pal.softBorder,
                       ),
                       const SizedBox(height: 6),
                       Text(
                         '${formatBytes(task.transferredBytes)} / ${formatBytes(task.totalBytes)} • ${formatSpeed(task.speedBytesPerSec)}',
-                        style: const TextStyle(
-                          color: VegaColors.lightSky,
-                          fontSize: 12,
-                        ),
+                        style: text.bodySmall?.copyWith(color: pal.textMuted),
                       ),
                       if (task.savedLocation != null) ...[
                         const SizedBox(height: 4),
@@ -358,11 +251,11 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
                       ],
                     ],
                   ),
-                );
-              }),
-            ],
+                ),
+              );
+            }),
           ],
-        ),
+        ],
       ),
     );
   }

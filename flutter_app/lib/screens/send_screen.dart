@@ -1,25 +1,39 @@
+import 'dart:ui' show FontFeature;
+import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+import '../l10n/vega_strings.dart';
 import '../models/transfer_models.dart';
+import '../state/app_state.dart';
 import '../theme/app_theme.dart';
+import '../widgets/heritage/heritage_page.dart';
+import '../widgets/heritage/heritage_palette.dart';
+import '../widgets/heritage/heritage_panel.dart';
+import '../widgets/heritage/saffron_button.dart';
 import 'radar_discovery_screen.dart';
 
 enum _CategoryKind { photos, videos, documents, apps, audio, files }
 
-class SendScreen extends StatefulWidget {
+class SendScreen extends ConsumerStatefulWidget {
   final List<({String path, String name, int size})>? initialFiles;
 
   const SendScreen({super.key, this.initialFiles});
 
   @override
-  State<SendScreen> createState() => _SendScreenState();
+  ConsumerState<SendScreen> createState() => _SendScreenState();
 }
 
-class _SendScreenState extends State<SendScreen> {
+class _SendScreenState extends ConsumerState<SendScreen> {
   final List<({String path, String name, int size, _CategoryKind kind})> _items = [];
   final Set<int> _selectedIndices = {};
-  _CategoryKind _activeCategory = _CategoryKind.photos;
+  _CategoryKind? _filter; // null = show everything
+  bool _noteMode = false;
+  final TextEditingController _noteTitle = TextEditingController();
+  final TextEditingController _noteBody = TextEditingController();
 
   @override
   void initState() {
@@ -72,65 +86,89 @@ class _SendScreenState extends State<SendScreen> {
     return _CategoryKind.files;
   }
 
-  Future<void> _pickCategory(_CategoryKind kind) async {
-    setState(() => _activeCategory = kind);
+  @override
+  void dispose() {
+    _noteTitle.dispose();
+    _noteBody.dispose();
+    super.dispose();
+  }
 
-    FileType type = FileType.any;
-    List<String>? extensions;
-    switch (kind) {
-      case _CategoryKind.photos:
-        type = FileType.image;
-        break;
-      case _CategoryKind.videos:
-        type = FileType.video;
-        break;
-      case _CategoryKind.audio:
-        type = FileType.audio;
-        break;
-      case _CategoryKind.documents:
-        type = FileType.custom;
-        extensions = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'csv'];
-        break;
-      case _CategoryKind.apps:
-        // Play Store compliant: opens standard file picker for .apk/.zip without QUERY_ALL_PACKAGES
-        type = FileType.custom;
-        extensions = ['apk', 'zip'];
-        break;
-      case _CategoryKind.files:
-        type = FileType.any;
-        break;
-    }
-
-    final result = await FilePicker.platform.pickFiles(
-      allowMultiple: true,
-      type: type,
-      allowedExtensions: extensions,
-    );
-    if (result == null) return;
-
+  void _addPicked(List<PlatformFile> files, {String? relativeRoot}) {
     setState(() {
-      for (final f in result.files) {
-        if (f.path == null) continue;
-        final existingIdx = _items.indexWhere((e) => e.path == f.path);
-        if (existingIdx != -1) {
-          _selectedIndices.add(existingIdx);
+      for (final f in files) {
+        final path = f.path;
+        if (path == null) continue;
+        final existing = _items.indexWhere((e) => e.path == path);
+        if (existing != -1) {
+          _selectedIndices.add(existing);
         } else {
-          final nextIdx = _items.length;
-          _items.add((
-            path: f.path!,
-            name: f.name,
-            size: f.size,
-            kind: kind,
-          ));
-          _selectedIndices.add(nextIdx);
+          _items.add((path: path, name: f.name, size: f.size, kind: _inferKind(f.name)));
+          _selectedIndices.add(_items.length - 1);
         }
       }
     });
   }
 
-  int _countFor(_CategoryKind kind) {
-    if (kind == _CategoryKind.files) return _items.length;
-    return _items.where((item) => item.kind == kind).length;
+  Future<void> _pickFiles({FileType type = FileType.any}) async {
+    final result = await FilePicker.platform.pickFiles(allowMultiple: true, type: type);
+    if (result == null) return;
+    _addPicked(result.files);
+  }
+
+  Future<void> _pickFolder() async {
+    final s = VegaStrings(ref.read(vegaProvider).settings.isHindi);
+    String? dir;
+    try {
+      dir = await FilePicker.platform.getDirectoryPath();
+    } catch (_) {}
+    if (dir == null) return;
+    final found = <PlatformFile>[];
+    try {
+      await for (final e in Directory(dir).list(recursive: true, followLinks: false)) {
+        if (e is File) {
+          found.add(PlatformFile(path: e.path, name: p.basename(e.path), size: await e.length()));
+          if (found.length >= 2000) break;
+        }
+      }
+    } catch (_) {}
+    if (!mounted) return;
+    if (found.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            s.t(
+              'This folder cannot be read on this phone yet. Pick its files instead.',
+              'इस फ़ोन पर यह फ़ोल्डर अभी नहीं पढ़ा जा सकता। इसकी फ़ाइलें चुनें।',
+            ),
+          ),
+        ),
+      );
+      return;
+    }
+    _addPicked(found);
+  }
+
+  Future<void> _addNote() async {
+    final body = _noteBody.text.trim();
+    if (body.isEmpty) return;
+    final title = _noteTitle.text.trim();
+    final dir = await getTemporaryDirectory();
+    final safe = (title.isEmpty ? 'Note' : title).replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+    final file = File(p.join(dir.path, '$safe-${DateTime.now().millisecondsSinceEpoch}.txt'));
+    await file.writeAsString(body);
+    if (!mounted) return;
+    setState(() {
+      _items.add((
+        path: file.path,
+        name: '$safe.txt',
+        size: file.lengthSync(),
+        kind: _CategoryKind.documents,
+      ));
+      _selectedIndices.add(_items.length - 1);
+      _noteMode = false;
+      _noteTitle.clear();
+      _noteBody.clear();
+    });
   }
 
   IconData _iconFor(_CategoryKind kind) {
@@ -146,11 +184,28 @@ class _SendScreenState extends State<SendScreen> {
       case _CategoryKind.audio:
         return Icons.music_note_rounded;
       case _CategoryKind.files:
-        return Icons.folder_outlined;
+        return Icons.insert_drive_file_outlined;
     }
   }
 
-  void _openRadar() {
+  String _kindLabel(VegaStrings s, _CategoryKind k) {
+    switch (k) {
+      case _CategoryKind.photos:
+        return s.t('Photos', 'फ़ोटो');
+      case _CategoryKind.videos:
+        return s.t('Videos', 'वीडियो');
+      case _CategoryKind.documents:
+        return s.t('Docs', 'दस्तावेज़');
+      case _CategoryKind.apps:
+        return s.t('Apps', 'ऐप्स');
+      case _CategoryKind.audio:
+        return s.t('Audio', 'ऑडियो');
+      case _CategoryKind.files:
+        return s.t('Other', 'अन्य');
+    }
+  }
+
+  void _openRadar(VegaStrings s) {
     final selected = <({String path, String name, int size})>[];
     for (final idx in _selectedIndices) {
       if (idx >= 0 && idx < _items.length) {
@@ -160,7 +215,11 @@ class _SendScreenState extends State<SendScreen> {
     }
     if (selected.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tap any category above to select files first')),
+        SnackBar(
+          content: Text(
+            s.t('Choose at least one file first', 'पहले कम से कम एक फ़ाइल चुनें'),
+          ),
+        ),
       );
       return;
     }
@@ -173,387 +232,399 @@ class _SendScreenState extends State<SendScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final selectedCount = _selectedIndices.length;
+  Widget _tile({
+    required HeritagePalette pal,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    bool primary = false,
+    bool highlight = false,
+  }) {
+    final fg = primary ? Colors.white : pal.text;
+    final sub = primary ? VegaColors.goldPale : pal.textMuted;
+    final inner = Row(
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: primary ? Colors.white.withValues(alpha: 0.15) : pal.field,
+            border: Border.all(
+              color: primary
+                  ? VegaColors.goldBorder.withValues(alpha: 0.5)
+                  : pal.softBorder,
+            ),
+          ),
+          child: Icon(
+            icon,
+            size: 20,
+            color: primary ? Colors.white : pal.accentText,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: fg, fontSize: 14, fontWeight: FontWeight.w800),
+              ),
+              Text(
+                subtitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: sub, fontSize: 11),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
 
-    return Scaffold(
-      backgroundColor: VegaColors.deepCanvas,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+    if (primary) {
+      return Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: onTap,
+          child: Ink(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
             decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
               gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  VegaColors.deepNavy,
-                  VegaColors.midnightBlue,
-                ],
+                colors: [VegaColors.saffron, VegaColors.saffronDeep, VegaColors.saffronShade],
               ),
-              borderRadius: BorderRadius.circular(28),
-              border: Border.all(
-                color: VegaColors.sandstoneGold.withValues(alpha: 0.55),
-                width: 1.4,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Integrated Header inside the Send Card
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: VegaColors.deepCanvas.withValues(alpha: 0.72),
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(
-                      color: VegaColors.sandstoneGold.withValues(alpha: 0.40),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      InkWell(
-                        onTap: () => Navigator.pop(context),
-                        borderRadius: BorderRadius.circular(14),
-                        child: Container(
-                          width: 42,
-                          height: 42,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(14),
-                            color: VegaColors.midnightBlue,
-                            border: Border.all(
-                              color: VegaColors.sandstoneGold.withValues(alpha: 0.55),
-                            ),
-                          ),
-                          child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Send Files · भेजें',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 19,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            Text(
-                              '$selectedCount file${selectedCount == 1 ? '' : 's'} selected · Unlimited size',
-                              style: const TextStyle(
-                                color: VegaColors.goldHighlight,
-                                fontSize: 12.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+              border: Border.all(color: VegaColors.goldBorder),
+              boxShadow: [
+                BoxShadow(
+                  color: VegaColors.saffronDeep.withValues(alpha: 0.3),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
                 ),
-                const SizedBox(height: 16),
-
-              // 2x3 Category Grid matching Photo 2
-              GridView.count(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisCount: 3,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 1.05,
-                children: [
-                  _CategoryTileCard(
-                    label: 'Photos',
-                    count: _countFor(_CategoryKind.photos),
-                    icon: Icons.image_outlined,
-                    selected: _activeCategory == _CategoryKind.photos,
-                    onTap: () => _pickCategory(_CategoryKind.photos),
-                  ),
-                  _CategoryTileCard(
-                    label: 'Videos',
-                    count: _countFor(_CategoryKind.videos),
-                    icon: Icons.videocam_outlined,
-                    selected: _activeCategory == _CategoryKind.videos,
-                    onTap: () => _pickCategory(_CategoryKind.videos),
-                  ),
-                  _CategoryTileCard(
-                    label: 'Documents',
-                    count: _countFor(_CategoryKind.documents),
-                    icon: Icons.description_outlined,
-                    selected: _activeCategory == _CategoryKind.documents,
-                    onTap: () => _pickCategory(_CategoryKind.documents),
-                  ),
-                  _CategoryTileCard(
-                    label: 'Apps',
-                    count: _countFor(_CategoryKind.apps),
-                    icon: Icons.apps_rounded,
-                    selected: _activeCategory == _CategoryKind.apps,
-                    onTap: () => _pickCategory(_CategoryKind.apps),
-                  ),
-                  _CategoryTileCard(
-                    label: 'Audio',
-                    count: _countFor(_CategoryKind.audio),
-                    icon: Icons.music_note_rounded,
-                    selected: _activeCategory == _CategoryKind.audio,
-                    onTap: () => _pickCategory(_CategoryKind.audio),
-                  ),
-                  _CategoryTileCard(
-                    label: 'Files',
-                    count: _countFor(_CategoryKind.files),
-                    icon: Icons.folder_outlined,
-                    selected: _activeCategory == _CategoryKind.files,
-                    onTap: () => _pickCategory(_CategoryKind.files),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 20),
-              const Text(
-                'Available Files',
-                style: TextStyle(
-                  color: VegaColors.goldHighlight,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 10),
-
-              // Checklist matching Photo 2
-              Expanded(
-                child: _items.isEmpty
-                    ? Center(
-                        child: Text(
-                          'Tap any category above to browse\nand queue files for fast transfer.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: VegaColors.lightSky.withValues(alpha: 0.7),
-                            fontSize: 13.5,
-                            height: 1.5,
-                          ),
-                        ),
-                      )
-                    : ListView.separated(
-                        itemCount: _items.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 10),
-                        itemBuilder: (context, idx) {
-                          final item = _items[idx];
-                          final isChecked = _selectedIndices.contains(idx);
-                          return InkWell(
-                            onTap: () {
-                              setState(() {
-                                if (isChecked) {
-                                  _selectedIndices.remove(idx);
-                                } else {
-                                  _selectedIndices.add(idx);
-                                }
-                              });
-                            },
-                            borderRadius: BorderRadius.circular(18),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 12,
-                              ),
-                              decoration: BoxDecoration(
-                                color: VegaColors.deepNavy,
-                                borderRadius: BorderRadius.circular(18),
-                                border: Border.all(
-                                  color: isChecked
-                                      ? VegaColors.sandstoneGold.withValues(alpha: 0.85)
-                                      : VegaColors.sandstoneGold.withValues(alpha: 0.30),
-                                  width: isChecked ? 1.5 : 1,
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 44,
-                                    height: 44,
-                                    decoration: BoxDecoration(
-                                      color: isChecked
-                                          ? VegaColors.electricBlue
-                                          : VegaColors.deepCanvas,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Icon(
-                                      _iconFor(item.kind),
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 14),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          item.name,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w700,
-                                            fontSize: 14.5,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          formatBytes(item.size),
-                                          style: const TextStyle(
-                                            color: VegaColors.lightSky,
-                                            fontSize: 12.5,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Container(
-                                    width: 28,
-                                    height: 28,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: isChecked
-                                          ? VegaColors.electricBlue
-                                          : Colors.transparent,
-                                      border: Border.all(
-                                        color: isChecked
-                                            ? VegaColors.sandstoneGold
-                                            : VegaColors.sandstoneGold
-                                                .withValues(alpha: 0.4),
-                                        width: 1.5,
-                                      ),
-                                    ),
-                                    child: isChecked
-                                        ? const Icon(
-                                            Icons.check,
-                                            size: 17,
-                                            color: Colors.white,
-                                          )
-                                        : null,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-              ),
-
-              const SizedBox(height: 14),
-              // Full-width Electric Blue + Gold-Leaf CTA
-              SizedBox(
-                height: 54,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(
-                      color: VegaColors.sandstoneGold.withValues(alpha: 0.72),
-                    ),
-                  ),
-                  child: FilledButton.icon(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: VegaColors.electricBlue,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                    ),
-                    onPressed: _openRadar,
-                    icon: const Icon(
-                      Icons.radar,
-                      color: VegaColors.goldHighlight,
-                    ),
-                    label: const Text(
-                      'Scan for Receivers',
-                      style: TextStyle(fontSize: 16.5, fontWeight: FontWeight.w800),
-                    ),
-                  ),
-                ),
-              ),
               ],
             ),
+            child: inner,
           ),
         ),
-      ),
+      );
+    }
+    return HeritagePanel(
+      tile: true,
+      highlight: highlight,
+      radius: 18,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+      onTap: onTap,
+      child: inner,
     );
   }
-}
-
-class _CategoryTileCard extends StatelessWidget {
-  final String label;
-  final int count;
-  final IconData icon;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _CategoryTileCard({
-    required this.label,
-    required this.count,
-    required this.icon,
-    required this.selected,
-    required this.onTap,
-  });
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(18),
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: selected
-              ? const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    VegaColors.electricBlue,
-                    VegaColors.midnightBlue,
-                  ],
-                )
-              : null,
-          color: selected ? null : VegaColors.deepNavy,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: selected
-                ? VegaColors.goldHighlight.withValues(alpha: 0.85)
-                : VegaColors.sandstoneGold.withValues(alpha: 0.35),
+    final s = VegaStrings(ref.watch(vegaProvider.select((v) => v.settings.isHindi)));
+    final pal = HeritagePalette.of(context);
+    final text = Theme.of(context).textTheme;
+    final selectedCount = _selectedIndices.length;
+
+    final visible = <int>[
+      for (var i = 0; i < _items.length; i++)
+        if (_filter == null || _items[i].kind == _filter) i,
+    ];
+    final kindsPresent = <_CategoryKind>{for (final it in _items) it.kind};
+
+    return HeritagePage(
+      title: s.t('Send Files', 'फ़ाइलें भेजें'),
+      subtitle: s.t(
+        '$selectedCount ${selectedCount == 1 ? 'item' : 'items'} selected',
+        '$selectedCount फ़ाइलें चुनी गईं',
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 2.15,
+            children: [
+              _tile(
+                pal: pal,
+                icon: Icons.note_add_outlined,
+                title: s.t('Pick Files', 'फ़ाइलें चुनें'),
+                subtitle: s.t('Photos, video, docs', 'फ़ोटो, वीडियो, PDF'),
+                primary: true,
+                onTap: _pickFiles,
+              ),
+              _tile(
+                pal: pal,
+                icon: Icons.drive_folder_upload_outlined,
+                title: s.t('Pick Folder', 'फ़ोल्डर चुनें'),
+                subtitle: s.t('Entire directory', 'पूरा फ़ोल्डर भेजें'),
+                onTap: _pickFolder,
+              ),
+              _tile(
+                pal: pal,
+                icon: Icons.description_outlined,
+                title: s.t('Text Note', 'टेक्स्ट / नोट'),
+                subtitle: s.t('Type text or link', 'लिंक या संदेश लिखें'),
+                highlight: _noteMode,
+                onTap: () => setState(() => _noteMode = !_noteMode),
+              ),
+              _tile(
+                pal: pal,
+                icon: Icons.photo_library_outlined,
+                title: s.t('Gallery', 'गैलरी'),
+                subtitle: s.t('Photos & videos', 'फ़ोटो और वीडियो'),
+                onTap: () => _pickFiles(type: FileType.media),
+              ),
+            ],
           ),
-        ),
-        padding: const EdgeInsets.all(10),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              color: selected ? Colors.white : VegaColors.goldHighlight,
-              size: 26,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-                fontSize: 13.5,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              '$count',
-              style: TextStyle(
-                color: selected
-                    ? Colors.white.withValues(alpha: 0.92)
-                    : VegaColors.sandstoneGold,
-                fontSize: 12,
-              ),
-            ),
-          ],
-        ),
+          const SizedBox(height: 14),
+          Expanded(
+            child: _noteMode
+                ? HeritagePanel(
+                    radius: 24,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  s.t('Write Text or Link to Send', 'भेजने के लिए टेक्स्ट या लिंक लिखें'),
+                                  style: text.titleSmall?.copyWith(
+                                    color: pal.text,
+                                    fontFamily: 'serif',
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () => setState(() => _noteMode = false),
+                                child: Text(s.t('View List', 'सूची देखें')),
+                              ),
+                            ],
+                          ),
+                          TextField(
+                            controller: _noteTitle,
+                            style: TextStyle(color: pal.text),
+                            decoration: InputDecoration(
+                              hintText: s.t('Title (optional)', 'शीर्षक (वैकल्पिक)'),
+                              hintStyle: TextStyle(color: pal.textMuted),
+                              filled: true,
+                              fillColor: pal.field,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          TextField(
+                            controller: _noteBody,
+                            minLines: 4,
+                            maxLines: 6,
+                            style: TextStyle(color: pal.text),
+                            decoration: InputDecoration(
+                              hintText: s.t(
+                                'Type or paste a message, password, or link here...',
+                                'यहाँ कोई भी संदेश, पासवर्ड या लिंक पेस्ट करें...',
+                              ),
+                              hintStyle: TextStyle(color: pal.textMuted),
+                              filled: true,
+                              fillColor: pal.field,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: SaffronButton(
+                              label: s.t('Add to Send List', 'सूची में जोड़ें'),
+                              expand: false,
+                              height: 42,
+                              fontSize: 13,
+                              onPressed: _addNote,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              s.t('Ready to Send', 'भेजने के लिए तैयार'),
+                              style: text.titleSmall?.copyWith(
+                                color: pal.dark ? VegaColors.skyText : const Color(0xFF5B4D38),
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          if (selectedCount > 0)
+                            TextButton(
+                              onPressed: () => setState(_selectedIndices.clear),
+                              child: Text(s.t('Clear Selection', 'चयन हटाएं')),
+                            ),
+                        ],
+                      ),
+                      if (kindsPresent.length > 1)
+                        SizedBox(
+                          height: 36,
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            children: [
+                              HeritagePill(
+                                label: s.t('All', 'सभी'),
+                                selected: _filter == null,
+                                onTap: () => setState(() => _filter = null),
+                              ),
+                              for (final k in kindsPresent) ...[
+                                const SizedBox(width: 8),
+                                HeritagePill(
+                                  label: _kindLabel(s, k),
+                                  selected: _filter == k,
+                                  onTap: () => setState(() => _filter = k),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      const SizedBox(height: 8),
+                      Expanded(
+                        child: visible.isEmpty
+                            ? Container(
+                                alignment: Alignment.center,
+                                padding: const EdgeInsets.all(20),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  color: pal.dark ? const Color(0xB30D224A) : const Color(0xBFFFFFFF),
+                                  border: Border.all(color: pal.border),
+                                ),
+                                child: Text(
+                                  _items.isEmpty
+                                      ? s.t(
+                                          'Choose Files, Folder, or Note above',
+                                          'ऊपर से फ़ाइल, फ़ोल्डर या टेक्स्ट चुनें',
+                                        )
+                                      : s.t('No files match this filter', 'इस श्रेणी में कोई फ़ाइल नहीं है'),
+                                  textAlign: TextAlign.center,
+                                  style: text.titleSmall?.copyWith(
+                                    color: pal.text,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              )
+                            : ListView.separated(
+                                padding: EdgeInsets.zero,
+                                itemCount: visible.length,
+                                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                                itemBuilder: (context, i) {
+                                  final idx = visible[i];
+                                  final item = _items[idx];
+                                  final checked = _selectedIndices.contains(idx);
+                                  return HeritagePanel(
+                                    tile: true,
+                                    highlight: checked,
+                                    radius: 18,
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                    onTap: () => setState(() {
+                                      checked
+                                          ? _selectedIndices.remove(idx)
+                                          : _selectedIndices.add(idx);
+                                    }),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          width: 40,
+                                          height: 40,
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(12),
+                                            gradient: checked
+                                                ? const LinearGradient(
+                                                    begin: Alignment.topCenter,
+                                                    end: Alignment.bottomCenter,
+                                                    colors: [
+                                                      VegaColors.saffronLight,
+                                                      VegaColors.saffronDark,
+                                                    ],
+                                                  )
+                                                : null,
+                                            color: checked ? null : pal.field,
+                                            border: Border.all(color: pal.softBorder),
+                                          ),
+                                          child: Icon(
+                                            _iconFor(item.kind),
+                                            size: 20,
+                                            color: checked ? Colors.white : pal.textMuted,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                item.name,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: text.titleSmall?.copyWith(
+                                                  color: pal.text,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                              ),
+                                              Text(
+                                                formatBytes(item.size),
+                                                style: text.bodySmall?.copyWith(
+                                                  color: pal.textMuted,
+                                                  fontFeatures: const [FontFeature.tabularFigures()],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Container(
+                                          width: 24,
+                                          height: 24,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: checked ? VegaColors.saffron : Colors.transparent,
+                                            border: Border.all(
+                                              color: checked
+                                                  ? VegaColors.goldBorder
+                                                  : pal.border,
+                                            ),
+                                          ),
+                                          child: checked
+                                              ? const Icon(Icons.check_rounded, size: 15, color: Colors.white)
+                                              : null,
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                      ),
+                    ],
+                  ),
+          ),
+          const SizedBox(height: 12),
+          SaffronButton(
+            label: s.t('Scan for Receivers', 'रिसीवर खोजें'),
+            icon: Icons.podcasts_rounded,
+            fontSize: 16.5,
+            onPressed: () => _openRadar(s),
+          ),
+        ],
       ),
     );
   }
