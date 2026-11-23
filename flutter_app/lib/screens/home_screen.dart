@@ -14,7 +14,6 @@ import '../widgets/heritage/saffron_button.dart';
 import '../widgets/home/live_transfer_card.dart';
 import '../widgets/vega_logo.dart';
 import 'browser_share_screen.dart';
-import 'files_screen.dart';
 import 'help_screen.dart';
 import 'history_settings_screens.dart';
 import 'receive_screen.dart';
@@ -103,11 +102,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ],
         files: [
           DrawerEntry(
-            icon: Icons.folder_open_rounded,
-            label: s.t('Files', 'फ़ाइलें'),
-            onTap: () => _push(const FilesScreen()),
-          ),
-          DrawerEntry(
             icon: Icons.history_rounded,
             label: s.t('History', 'इतिहास'),
             onTap: () => _push(const HistoryScreen()),
@@ -170,11 +164,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                         fontSize: 25,
                                         letterSpacing: 0.5,
                                       ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    _HelpButton(
-                                      label: s.t('How it works', 'कैसे उपयोग करें'),
-                                      onTap: () => _push(const HelpScreen()),
                                     ),
                                   ],
                                 ),
@@ -340,63 +329,6 @@ class _Chip extends StatelessWidget {
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _HelpButton extends StatelessWidget {
-  const _HelpButton({required this.label, required this.onTap});
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = HeritagePalette.of(context);
-    return InkWell(
-      borderRadius: BorderRadius.circular(16),
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.all(4),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: p.dark ? const Color(0xE60D2148) : const Color(0xE6FFF5E6),
-                border: Border.all(color: VegaColors.sandstoneGold.withValues(alpha: 0.8)),
-              ),
-              alignment: Alignment.center,
-              child: Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: const LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [VegaColors.saffron, VegaColors.saffronDark],
-                  ),
-                  border: Border.all(color: VegaColors.goldBorder.withValues(alpha: 0.85)),
-                ),
-                child: const Icon(Icons.help_outline_rounded, size: 17, color: Colors.white),
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              label,
-              style: TextStyle(
-                color: p.dark ? VegaColors.goldHighlight : VegaColors.saffronDark,
-                fontSize: 12.5,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.3,
-              ),
-            ),
-          ],
         ),
       ),
     );
