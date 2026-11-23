@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
+import '../heritage/heritage_palette.dart';
 
 enum LinkOrbitMode { check, verified, waiting }
 
@@ -51,17 +52,17 @@ class _LinkOrbitState extends State<LinkOrbit> with SingleTickerProviderStateMix
       case LinkOrbitMode.verified:
         return const Color(0xFF4ADE80);
       case LinkOrbitMode.waiting:
-        return const Color(0xFF5AA2FF);
+        return VegaColors.saffron;
     }
   }
 
   String get _semantics {
     final state = switch (widget.mode) {
-      LinkOrbitMode.check => 'code match karna baaki',
-      LinkOrbitMode.verified => 'device pehchaana gaya',
-      LinkOrbitMode.waiting => 'jawab ka intezaar',
+      LinkOrbitMode.check => 'code match pending',
+      LinkOrbitMode.verified => 'device recognised',
+      LinkOrbitMode.waiting => 'waiting for reply',
     };
-    return '${widget.fromName} se ${widget.toName} tak surakshit link, $state';
+    return 'Secure link from ${widget.fromName} to ${widget.toName}, $state';
   }
 
   @override
@@ -81,7 +82,8 @@ class _LinkOrbitState extends State<LinkOrbit> with SingleTickerProviderStateMix
                 verified: widget.mode == LinkOrbitMode.verified,
                 fromName: widget.fromName,
                 toName: widget.toName,
-                nodeFill: Theme.of(context).colorScheme.surfaceContainerHigh,
+                nodeFill: HeritagePalette.of(context).tile,
+                glyph: HeritagePalette.of(context).text,
               ),
             ),
           ),
@@ -99,6 +101,7 @@ class _OrbitPainter extends CustomPainter {
     required this.fromName,
     required this.toName,
     required this.nodeFill,
+    required this.glyph,
   });
 
   // Drawing space (same numbers as the approved mockup).
@@ -112,12 +115,12 @@ class _OrbitPainter extends CustomPainter {
   final String fromName;
   final String toName;
   final Color nodeFill;
+  final Color glyph;
 
   static const Offset _left = Offset(50, 95);
   static const Offset _right = Offset(300, 95);
   static const Offset _shield = Offset(175, 50);
-  static const Color _blue = Color(0xFF5AA2FF);
-  static const Color _glyph = Color(0xFFD5E2FA);
+  static const Color _blue = VegaColors.saffron;
 
   double get _sec => t * loopSeconds;
 
@@ -222,19 +225,19 @@ class _OrbitPainter extends CustomPainter {
         ..strokeWidth = 2
         ..color = ring,
     );
-    final glyph = Paint()
+    final glyphPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.8
       ..strokeCap = StrokeCap.round
-      ..color = _glyph;
+      ..color = glyph;
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromCenter(center: c, width: 14, height: 24),
         const Radius.circular(3),
       ),
-      glyph,
+      glyphPaint,
     );
-    canvas.drawLine(c + const Offset(-2.5, 8), c + const Offset(2.5, 8), glyph);
+    canvas.drawLine(c + const Offset(-2.5, 8), c + const Offset(2.5, 8), glyphPaint);
   }
 
   void _shieldBadge(Canvas canvas) {
@@ -298,7 +301,7 @@ class _OrbitPainter extends CustomPainter {
       text: TextSpan(
         text: text,
         style: const TextStyle(
-          color: _glyph,
+          color: glyph,
           fontSize: 12,
           fontWeight: FontWeight.w600,
         ),

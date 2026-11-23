@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import '../heritage/heritage_palette.dart';
+import '../heritage/saffron_button.dart';
 
-/// Primary (filled, with a light sweep) and secondary (outlined) buttons.
+/// Primary (saffron pill) and secondary (outlined pill) buttons.
 /// Leave [primaryLabel] null to show only the secondary one.
-class ActionBar extends StatefulWidget {
+class ActionBar extends StatelessWidget {
   const ActionBar({
     super.key,
     this.primaryLabel,
@@ -17,96 +19,26 @@ class ActionBar extends StatefulWidget {
   final VoidCallback onSecondary;
 
   @override
-  State<ActionBar> createState() => _ActionBarState();
-}
-
-class _ActionBarState extends State<ActionBar> with SingleTickerProviderStateMixin {
-  late final AnimationController _c =
-      AnimationController(vsync: this, duration: const Duration(seconds: 3));
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (MediaQuery.disableAnimationsOf(context)) {
-      _c.stop();
-    } else if (!_c.isAnimating) {
-      _c.repeat();
-    }
-  }
-
-  @override
-  void dispose() {
-    _c.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final primary = widget.primaryLabel;
+    final p = HeritagePalette.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (primary != null) ...[
-          SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  FilledButton(onPressed: widget.onPrimary, child: Text(primary)),
-                  Positioned.fill(
-                    child: IgnorePointer(
-                      child: ExcludeSemantics(
-                        child: AnimatedBuilder(
-                          animation: _c,
-                          builder: (context, _) => CustomPaint(painter: _SweepPainter(_c.value)),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+        if (primaryLabel != null) ...[
+          SaffronButton(label: primaryLabel!, onPressed: onPrimary),
           const SizedBox(height: 10),
         ],
-        SizedBox(
-          width: double.infinity,
-          height: 52,
-          child: OutlinedButton(
-            onPressed: widget.onSecondary,
-            child: Text(widget.secondaryLabel),
+        OutlinedButton(
+          onPressed: onSecondary,
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size.fromHeight(50),
+            foregroundColor: p.text,
+            side: BorderSide(color: p.border),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
           ),
+          child: Text(secondaryLabel, style: const TextStyle(fontWeight: FontWeight.w700)),
         ),
       ],
     );
   }
-}
-
-class _SweepPainter extends CustomPainter {
-  _SweepPainter(this.t);
-  final double t;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final bandW = size.width * (90 / 350);
-    final x = -bandW * 1.3 + (size.width + bandW * 2.6) * t;
-    final rect = Rect.fromLTWH(x, 0, bandW, size.height);
-    canvas.drawRect(
-      rect,
-      Paint()
-        ..shader = LinearGradient(
-          colors: [
-            Colors.white.withValues(alpha: 0),
-            Colors.white.withValues(alpha: 0.28),
-            Colors.white.withValues(alpha: 0),
-          ],
-        ).createShader(rect),
-    );
-  }
-
-  @override
-  bool shouldRepaint(_SweepPainter old) => old.t != t;
 }

@@ -1,6 +1,7 @@
 import 'dart:ui' show FontFeature;
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
+import '../heritage/heritage_palette.dart';
 
 enum CodeTone { gold, green }
 
@@ -70,16 +71,15 @@ class _CodeDigitsState extends State<CodeDigits> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final pal = HeritagePalette.of(context);
     final color = widget.tone == CodeTone.green
         ? VegaColors.successOnDark
-        : (Theme.of(context).brightness == Brightness.dark
-            ? VegaColors.goldHighlight
-            : cs.tertiary);
+        : pal.accentText;
     final size = widget.compact ? 32.0 : 46.0;
     final style = TextStyle(
       fontSize: size,
       fontWeight: FontWeight.w700,
+      fontFamily: 'serif',
       height: 1.1,
       color: color,
       fontFeatures: const [FontFeature.tabularFigures()],
@@ -122,9 +122,9 @@ class _CodeDigitsState extends State<CodeDigits> with SingleTickerProviderStateM
           vertical: widget.compact ? 8 : 10,
         ),
         decoration: BoxDecoration(
-          color: cs.surfaceContainer,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: cs.outlineVariant),
+          color: pal.panel,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: pal.border),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -158,7 +158,7 @@ class _CodeDigitsState extends State<CodeDigits> with SingleTickerProviderStateM
               style: Theme.of(context)
                   .textTheme
                   .bodySmall
-                  ?.copyWith(color: cs.onSurfaceVariant),
+                  ?.copyWith(color: pal.textMuted),
             ),
           ],
         ),

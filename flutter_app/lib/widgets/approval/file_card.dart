@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../models/transfer_models.dart';
 import '../../theme/app_theme.dart';
+import '../heritage/heritage_palette.dart';
+import '../heritage/heritage_panel.dart';
 
 /// File name, size and link status in a Material 3 card.
 class FileCard extends StatefulWidget {
@@ -68,16 +70,12 @@ class _FileCardState extends State<FileCard> with SingleTickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final pal = HeritagePalette.of(context);
     final text = Theme.of(context).textTheme;
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    final accent = dark ? VegaColors.goldHighlight : cs.tertiary;
-    final linkColor = widget.encrypted ? cs.onSurfaceVariant : VegaColors.warningOnDark;
+    final accent = pal.accentText;
+    final linkColor = widget.encrypted ? pal.textMuted : VegaColors.warning;
 
-    return Card(
-      margin: EdgeInsets.zero,
-      color: cs.surfaceContainerHigh,
-      child: Padding(
+    return HeritagePanel(
         padding: const EdgeInsets.all(14),
         child: Row(
           children: [
@@ -85,7 +83,7 @@ class _FileCardState extends State<FileCard> with SingleTickerProviderStateMixin
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: cs.primaryContainer,
+                color: accent.withValues(alpha: 0.14),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: FadeTransition(
@@ -102,17 +100,17 @@ class _FileCardState extends State<FileCard> with SingleTickerProviderStateMixin
                     widget.fileName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: text.titleMedium?.copyWith(color: cs.onSurface),
+                    style: text.titleMedium?.copyWith(color: pal.text),
                   ),
                   const SizedBox(height: 3),
                   Row(
                     children: [
                       Text(
                         formatBytes(widget.totalBytes),
-                        style: text.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                        style: text.bodySmall?.copyWith(color: pal.textMuted),
                       ),
                       const SizedBox(width: 6),
-                      Text('·', style: text.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
+                      Text('·', style: text.bodySmall?.copyWith(color: pal.textMuted)),
                       const SizedBox(width: 6),
                       Icon(
                         widget.encrypted ? Icons.lock_outline_rounded : Icons.lock_open_rounded,
@@ -135,7 +133,6 @@ class _FileCardState extends State<FileCard> with SingleTickerProviderStateMixin
             ),
           ],
         ),
-      ),
     );
   }
 }

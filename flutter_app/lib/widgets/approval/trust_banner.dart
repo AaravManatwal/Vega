@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
+import '../heritage/heritage_palette.dart';
 
 enum TrustVariant { warning, verified, waiting }
 
@@ -20,7 +21,7 @@ class TrustBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final tone = _Tone.of(variant, dark, cs);
+    final tone = _Tone.of(context, variant, dark, cs);
 
     return Semantics(
       container: true,
@@ -31,7 +32,7 @@ class TrustBanner extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
             color: tone.bg,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(color: tone.border),
           ),
           child: Row(
@@ -103,7 +104,7 @@ class _Tone {
   final Color title;
   final Color text;
 
-  static _Tone of(TrustVariant v, bool dark, ColorScheme cs) {
+  static _Tone of(BuildContext context, TrustVariant v, bool dark, ColorScheme cs) {
     switch (v) {
       case TrustVariant.warning:
         return dark
@@ -138,13 +139,8 @@ class _Tone {
                 const Color(0xFF0B5A2E),
               );
       case TrustVariant.waiting:
-        return _Tone(
-          cs.surfaceContainer,
-          cs.outlineVariant,
-          dark ? const Color(0xFF7DB7FF) : cs.primary,
-          cs.onSurface,
-          cs.onSurfaceVariant,
-        );
+        final pal = HeritagePalette.of(context);
+        return _Tone(pal.panel, pal.border, pal.accentText, pal.text, pal.textMuted);
     }
   }
 }
