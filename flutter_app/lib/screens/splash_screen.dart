@@ -90,7 +90,7 @@ class _VegaSplashScreenState extends State<VegaSplashScreen>
                         const Text(
                           'Manatwal Innovations',
                           style: TextStyle(
-                            color: VegaColors.lightSky,
+                            color: VegaColors.goldPale,
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
                             letterSpacing: 0.3,
@@ -158,7 +158,7 @@ class _VegaSplashScreenState extends State<VegaSplashScreen>
                                       borderRadius: BorderRadius.circular(30),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: VegaColors.electricBlue
+                                          color: VegaColors.saffron
                                               .withValues(alpha: 0.38),
                                           blurRadius: 34,
                                           spreadRadius: 4,
@@ -199,7 +199,7 @@ class _VegaSplashScreenState extends State<VegaSplashScreen>
                               'Offline File Sharing · Android & Windows',
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                color: VegaColors.lightSky,
+                                color: VegaColors.goldPale,
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -220,7 +220,7 @@ class _VegaSplashScreenState extends State<VegaSplashScreen>
                               backgroundColor:
                                   VegaColors.sandstoneGold.withValues(alpha: 0.22),
                               valueColor: const AlwaysStoppedAnimation<Color>(
-                                VegaColors.electricBlue,
+                                VegaColors.saffron,
                               ),
                             ),
                           ),
@@ -271,7 +271,7 @@ class _OuterMandalaPainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.0
-        ..color = VegaColors.electricBlue.withValues(alpha: 0.45),
+        ..color = VegaColors.saffron.withValues(alpha: 0.45),
     );
 
     final petalPaint = Paint()
@@ -280,7 +280,7 @@ class _OuterMandalaPainter extends CustomPainter {
       ..color = VegaColors.sandstoneGold.withValues(alpha: 0.72);
 
     final dotGoldPaint = Paint()..color = VegaColors.goldHighlight;
-    final dotBluePaint = Paint()..color = VegaColors.electricBlue;
+    final dotBluePaint = Paint()..color = VegaColors.saffron;
 
     // 16 Rajasthani Lotus Petals
     for (int i = 0; i < 16; i++) {
@@ -433,7 +433,7 @@ class _HeritageSplashPainter extends CustomPainter {
         ..color = VegaColors.sandstoneGold.withValues(alpha: 0.28),
     );
 
-    // Electric Blue S-Wave
+    // Saffron S-Wave
     final crest = Path()
       ..moveTo(0, size.height * 0.65)
       ..cubicTo(
@@ -457,8 +457,8 @@ class _HeritageSplashPainter extends CustomPainter {
           begin: Alignment.topCenter,
           end: Alignment.bottomRight,
           colors: [
-            VegaColors.electricBlue,
-            Color(0xFF0055B8),
+            VegaColors.saffron,
+            VegaColors.saffronDark,
             VegaColors.midnightBlue,
           ],
         ).createShader(rect),

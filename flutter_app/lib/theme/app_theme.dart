@@ -15,7 +15,7 @@ class AppTheme {
   static ThemeData light({ColorScheme? dynamicScheme}) {
     final cs = dynamicScheme ?? VegaScheme.light();
     return VegaComponents.apply(
-      ThemeData(useMaterial3: true, colorScheme: cs, brightness: Brightness.light),
+      ThemeData(useMaterial3: true, colorScheme: cs, brightness: Brightness.light, fontFamily: 'Outfit', fontFamilyFallback: const ['NotoSansDevanagari']),
       cs,
       dark: false,
     );
@@ -24,7 +24,7 @@ class AppTheme {
   static ThemeData dark({ColorScheme? dynamicScheme}) {
     final cs = dynamicScheme ?? VegaScheme.dark();
     return VegaComponents.apply(
-      ThemeData(useMaterial3: true, colorScheme: cs, brightness: Brightness.dark),
+      ThemeData(useMaterial3: true, colorScheme: cs, brightness: Brightness.dark, fontFamily: 'Outfit', fontFamilyFallback: const ['NotoSansDevanagari']),
       cs,
       dark: true,
     );

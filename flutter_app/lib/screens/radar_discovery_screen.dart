@@ -5,8 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../core/security/pairing.dart';
 import '../models/transfer_models.dart';
+import '../l10n/vega_strings.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
+import '../widgets/heritage/heritage_page.dart';
+import '../widgets/heritage/heritage_palette.dart';
+import '../widgets/heritage/heritage_panel.dart';
+import '../widgets/heritage/saffron_button.dart';
 
 class RadarDiscoveryScreen extends ConsumerStatefulWidget {
   final List<({String path, String name, int size})> filesToSend;
@@ -43,9 +48,11 @@ class _RadarDiscoveryScreenState extends ConsumerState<RadarDiscoveryScreen>
   }
 
   Future<void> _scanQr() async {
+    final scanTitle = VegaStrings(ref.read(vegaProvider).settings.isHindi)
+        .t('Scan Receiver QR', 'प्राप्तकर्ता का QR स्कैन करें');
     final scanned = await Navigator.push<String>(
       context,
-      MaterialPageRoute(builder: (_) => const _RadarQrScannerPage()),
+      MaterialPageRoute(builder: (_) => _RadarQrScannerPage(title: scanTitle)),
     );
     if (scanned == null) return;
     final uri = Uri.tryParse(scanned);
@@ -79,65 +86,91 @@ class _RadarDiscoveryScreenState extends ConsumerState<RadarDiscoveryScreen>
   Future<void> _promptManualIp() async {
     final ipCtrl = TextEditingController();
     final portCtrl = TextEditingController(text: '47890');
+    final s = VegaStrings(ref.read(vegaProvider).settings.isHindi);
     final peer = await showDialog<PeerDevice>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: VegaColors.cardMidnight,
-        title: const Text(
-          'Connect by IP Address',
-          style: TextStyle(color: Colors.white),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: ipCtrl,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                labelText: 'Receiver IP (e.g. 192.168.43.1)',
-                border: OutlineInputBorder(),
+      builder: (ctx) {
+        final pal = HeritagePalette.of(ctx);
+        InputDecoration deco(String label) => InputDecoration(
+              labelText: label,
+              labelStyle: TextStyle(color: pal.textMuted),
+              filled: true,
+              fillColor: pal.field,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(color: pal.border),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(color: pal.border),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: VegaColors.saffron),
+              ),
+            );
+        return AlertDialog(
+          backgroundColor: pal.dark ? VegaColors.cardMidnight : VegaColors.ivory,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: BorderSide(color: pal.border),
+          ),
+          title: Text(
+            s.t('Connect by IP Address', 'IP पते से जुड़ें'),
+            style: TextStyle(color: pal.text, fontWeight: FontWeight.w800),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: ipCtrl,
+                style: TextStyle(color: pal.text),
+                decoration: deco(
+                  s.t('Receiver IP (e.g. 192.168.43.1)',
+                      'प्राप्तकर्ता का IP (जैसे 192.168.43.1)'),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: portCtrl,
+                keyboardType: TextInputType.number,
+                style: TextStyle(color: pal.text),
+                decoration: deco(s.t('Port', 'पोर्ट')),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(
+                s.t('Cancel', 'रद्द करें'),
+                style: TextStyle(color: pal.accentText),
               ),
             ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: portCtrl,
-              keyboardType: TextInputType.number,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                labelText: 'Port',
-                border: OutlineInputBorder(),
-              ),
+            SaffronButton(
+              label: s.t('Connect & Send', 'जोड़ें और भेजें'),
+              expand: false,
+              height: 42,
+              fontSize: 14,
+              onPressed: () {
+                final host = ipCtrl.text.trim();
+                final port = int.tryParse(portCtrl.text) ?? 47890;
+                if (host.isEmpty) return;
+                Navigator.pop(
+                  ctx,
+                  PeerDevice(
+                    id: 'manual-$host',
+                    name: host,
+                    host: host,
+                    port: port,
+                    platform: 'direct',
+                  ),
+                );
+              },
             ),
           ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: VegaColors.vibrantOrange,
-            ),
-            onPressed: () {
-              final host = ipCtrl.text.trim();
-              final port = int.tryParse(portCtrl.text) ?? 47890;
-              if (host.isEmpty) return;
-              Navigator.pop(
-                ctx,
-                PeerDevice(
-                  id: 'manual-$host',
-                  name: host,
-                  host: host,
-                  port: port,
-                  platform: 'direct',
-                ),
-              );
-            },
-            child: const Text('Connect & Send'),
-          ),
-        ],
-      ),
+        );
+      },
     );
     if (peer != null) {
       await _sendToPeer(peer);
@@ -148,428 +181,346 @@ class _RadarDiscoveryScreenState extends ConsumerState<RadarDiscoveryScreen>
   Widget build(BuildContext context) {
     final state = ref.watch(vegaProvider);
     final controller = ref.read(vegaProvider.notifier);
+    final s = VegaStrings(state.settings.isHindi);
+    final pal = HeritagePalette.of(context);
     final peers = state.nearbyPeers;
     final sendTasks = state.tasks.values
         .where((t) => t.direction == TransferDirection.send)
         .toList();
 
-    return Scaffold(
-      backgroundColor: VegaColors.deepCanvas,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(18, 12, 18, 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Decorative Header with Gold-Leaf #C5A059 Trim
-              Container(
-                padding: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                      color: VegaColors.sandstoneGold.withValues(alpha: 0.35),
-                    ),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    InkWell(
-                      onTap: () => Navigator.pop(context),
-                      borderRadius: BorderRadius.circular(24),
-                      child: Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: VegaColors.midnightBlue,
-                          border: Border.all(
-                            color: VegaColors.sandstoneGold.withValues(alpha: 0.55),
+    return HeritagePage(
+      title: s.t('Searching Nearby', 'आसपास खोज रहे हैं'),
+      subtitle: s.t(
+        "Make sure receiver's visibility is turned on",
+        'पक्का करें कि प्राप्तकर्ता की दृश्यता चालू है',
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          HeritageRoundButton(
+            icon: Icons.qr_code_scanner,
+            tooltip: s.t('Scan Receiver QR', 'प्राप्तकर्ता का QR स्कैन करें'),
+            size: 40,
+            onTap: _scanQr,
+          ),
+          const SizedBox(width: 8),
+          HeritageRoundButton(
+            icon: Icons.lan_outlined,
+            tooltip: s.t('Manual IP', 'मैन्युअल IP'),
+            size: 40,
+            onTap: _promptManualIp,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Animated sweeping saffron radar
+          Expanded(
+            flex: 5,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final size = math.min(
+                  constraints.maxWidth,
+                  constraints.maxHeight,
+                );
+                return Center(
+                  child: SizedBox(
+                    width: size,
+                    height: size,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        AnimatedBuilder(
+                          animation: _radarController,
+                          builder: (_, __) => CustomPaint(
+                            size: Size(size, size),
+                            painter: _OrangeRadarPainter(
+                              angle: _radarController.value * 2 * math.pi,
+                            ),
                           ),
                         ),
-                        child: const Icon(Icons.arrow_back, color: Colors.white),
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Searching Nearby',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 21,
-                              fontWeight: FontWeight.w800,
+                        // Center saffron + gold-leaf send beacon
+                        Container(
+                          width: 58,
+                          height: 58,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: VegaColors.saffron,
+                            border: Border.all(
+                              color: VegaColors.sandstoneGold,
+                              width: 2,
                             ),
+                            boxShadow: [
+                              BoxShadow(
+                                color:
+                                    VegaColors.saffron.withValues(alpha: 0.55),
+                                blurRadius: 20,
+                              ),
+                            ],
                           ),
-                          Text(
-                            "Make sure receiver's visibility is turned on",
-                            style: TextStyle(
-                              color: VegaColors.goldHighlight,
-                              fontSize: 12.5,
-                            ),
+                          child: const Icon(
+                            Icons.arrow_upward_rounded,
+                            color: Colors.white,
+                            size: 30,
                           ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      tooltip: 'Scan Receiver QR',
-                      icon: const Icon(
-                        Icons.qr_code_scanner,
-                        color: VegaColors.goldHighlight,
-                      ),
-                      onPressed: _scanQr,
-                    ),
-                    IconButton(
-                      tooltip: 'Manual IP',
-                      icon: const Icon(Icons.lan_outlined, color: Colors.white),
-                      onPressed: _promptManualIp,
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              // Animated Sweeping Orange Radar matching Photo 3
-              Expanded(
-                flex: 5,
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final size = math.min(
-                      constraints.maxWidth,
-                      constraints.maxHeight,
-                    );
-                    return Center(
-                      child: SizedBox(
-                        width: size,
-                        height: size,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            AnimatedBuilder(
-                              animation: _radarController,
-                              builder: (_, __) => CustomPaint(
-                                size: Size(size, size),
-                                painter: _OrangeRadarPainter(
-                                  angle: _radarController.value * 2 * math.pi,
+                        ),
+                        // Plot discovered peer icons on radar rings
+                        ...peers.asMap().entries.map((entry) {
+                          final idx = entry.key;
+                          final peer = entry.value;
+                          final theta = (idx / math.max(peers.length, 1)) *
+                                  2 *
+                                  math.pi -
+                              math.pi * 0.7;
+                          final radius = size * 0.30;
+                          return Transform.translate(
+                            offset: Offset(
+                              math.cos(theta) * radius,
+                              math.sin(theta) * radius,
+                            ),
+                            child: GestureDetector(
+                              onTap: () => _sendToPeer(peer),
+                              child: Container(
+                                width: 46,
+                                height: 46,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: pal.panel,
+                                  border: Border.all(
+                                    color: VegaColors.sandstoneGold,
+                                    width: 2,
+                                  ),
+                                ),
+                                child: Icon(
+                                  peer.platform == 'windows' ||
+                                          peer.platform == 'macos'
+                                      ? Icons.laptop_mac
+                                      : Icons.smartphone,
+                                  color: pal.accentText,
+                                  size: 22,
                                 ),
                               ),
                             ),
-                            // Center Electric Blue + Gold-Leaf Send Beacon
-                            Container(
-                              width: 58,
-                              height: 58,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: VegaColors.electricBlue,
-                                border: Border.all(
-                                  color: VegaColors.sandstoneGold,
-                                  width: 2,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: VegaColors.electricBlue
-                                        .withValues(alpha: 0.55),
-                                    blurRadius: 20,
-                                  ),
-                                ],
-                              ),
-                              child: const Icon(
-                                Icons.arrow_upward_rounded,
-                                color: Colors.white,
-                                size: 30,
-                              ),
-                            ),
-                            // Plot discovered peer icons on radar rings
-                            ...peers.asMap().entries.map((entry) {
-                              final idx = entry.key;
-                              final peer = entry.value;
-                              final theta = (idx / math.max(peers.length, 1)) *
-                                      2 *
-                                      math.pi -
-                                  math.pi * 0.7;
-                              final radius = size * 0.30;
-                              return Transform.translate(
-                                offset: Offset(
-                                  math.cos(theta) * radius,
-                                  math.sin(theta) * radius,
-                                ),
-                                child: GestureDetector(
-                                  onTap: () => _sendToPeer(peer),
-                                  child: Container(
-                                    width: 46,
-                                    height: 46,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: VegaColors.deepNavy,
-                                      border: Border.all(
-                                        color: VegaColors.sandstoneGold,
-                                        width: 2,
-                                      ),
+                          );
+                        }),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // Discovered devices nearby / live transfer panel
+          Expanded(
+            flex: 4,
+            child: HeritagePanel(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    sendTasks.isNotEmpty
+                        ? s.t('Active Transfers', 'चालू ट्रांसफ़र')
+                        : s.t('Discovered devices nearby',
+                            'आसपास मिले डिवाइस'),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: pal.text,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Expanded(
+                    child: sendTasks.isNotEmpty
+                        ? ListView.separated(
+                            itemCount: sendTasks.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 8),
+                            itemBuilder: (_, i) {
+                              final task = sendTasks[i];
+                              return HeritagePanel(
+                                tile: true,
+                                highlight: true,
+                                radius: 14,
+                                padding: const EdgeInsets.all(12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            task.fileName,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              color: pal.text,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ),
+                                        Text(
+                                          task.status.name.toUpperCase(),
+                                          style: const TextStyle(
+                                            color: VegaColors.saffron,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    child: Icon(
-                                      peer.platform == 'windows' ||
-                                              peer.platform == 'macos'
-                                          ? Icons.laptop_mac
-                                          : Icons.smartphone,
-                                      color: VegaColors.goldHighlight,
-                                      size: 22,
+                                    const SizedBox(height: 6),
+                                    LinearProgressIndicator(
+                                      value: task.progress,
+                                      color: VegaColors.saffron,
+                                      backgroundColor: pal.softBorder,
                                     ),
-                                  ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            '${formatBytes(task.transferredBytes)} / ${formatBytes(task.totalBytes)} • ${formatSpeed(task.speedBytesPerSec)}',
+                                            style: TextStyle(
+                                              color: pal.textMuted,
+                                              fontSize: 11.5,
+                                            ),
+                                          ),
+                                        ),
+                                        if (task.isActive)
+                                          Row(
+                                            children: [
+                                              IconButton(
+                                                visualDensity:
+                                                    VisualDensity.compact,
+                                                icon: Icon(
+                                                  task.status ==
+                                                          TransferStatus.paused
+                                                      ? Icons.play_arrow
+                                                      : Icons.pause,
+                                                  color: pal.text,
+                                                  size: 18,
+                                                ),
+                                                onPressed: () {
+                                                  if (task.status ==
+                                                      TransferStatus.paused) {
+                                                    controller.engine
+                                                        .resumeTransfer(
+                                                            task.id);
+                                                  } else {
+                                                    controller.engine
+                                                        .pauseTransfer(task.id);
+                                                  }
+                                                },
+                                              ),
+                                              IconButton(
+                                                visualDensity:
+                                                    VisualDensity.compact,
+                                                icon: Icon(
+                                                  Icons.close,
+                                                  color: pal.textMuted,
+                                                  size: 18,
+                                                ),
+                                                onPressed: () => controller
+                                                    .engine
+                                                    .cancelTransfer(task.id),
+                                              ),
+                                            ],
+                                          ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
                               );
-                            }),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              // Discovered Devices Nearby / Live Transfer Panel
-              Expanded(
-                flex: 4,
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: VegaColors.deepNavy,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(
-                      color: VegaColors.sandstoneGold.withValues(alpha: 0.45),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        sendTasks.isNotEmpty
-                            ? 'Active Transfers'
-                            : 'Discovered devices nearby',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Expanded(
-                        child: sendTasks.isNotEmpty
-                            ? ListView.separated(
-                                itemCount: sendTasks.length,
+                            },
+                          )
+                        : peers.isEmpty
+                            ? Center(
+                                child: Text(
+                                  s.t(
+                                    'Scanning Wi-Fi Direct & LAN mDNS...\nOr tap QR / IP icon above.',
+                                    'Wi-Fi Direct और LAN mDNS स्कैन हो रहा है...\nया ऊपर QR / IP आइकन दबाएँ।',
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: pal.textMuted,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              )
+                            : ListView.separated(
+                                itemCount: peers.length,
                                 separatorBuilder: (_, __) =>
                                     const SizedBox(height: 8),
                                 itemBuilder: (_, i) {
-                                  final task = sendTasks[i];
-                                  return Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: VegaColors.deepCanvas,
-                                      borderRadius: BorderRadius.circular(14),
-                                      border: Border.all(
-                                        color: VegaColors.vibrantOrange
-                                            .withValues(alpha: 0.6),
-                                      ),
+                                  final peer = peers[i];
+                                  return HeritagePanel(
+                                    tile: true,
+                                    radius: 14,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                      vertical: 12,
                                     ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                    onTap: () => _sendToPeer(peer),
+                                    child: Row(
                                       children: [
-                                        Row(
-                                          children: [
-                                            Expanded(
-                                              child: Text(
-                                                task.fileName,
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                              ),
-                                            ),
-                                            Text(
-                                              task.status.name.toUpperCase(),
-                                              style: const TextStyle(
-                                                color: VegaColors
-                                                    .vibrantOrange,
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                            ),
-                                          ],
+                                        Icon(
+                                          peer.platform == 'windows' ||
+                                                  peer.platform == 'macos'
+                                              ? Icons.laptop_mac
+                                              : Icons.smartphone,
+                                          color: VegaColors.saffron,
                                         ),
-                                        const SizedBox(height: 6),
-                                        LinearProgressIndicator(
-                                          value: task.progress,
-                                          color: VegaColors.vibrantOrange,
-                                          backgroundColor:
-                                              VegaColors.borderMidnight,
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Text(
-                                              '${formatBytes(task.transferredBytes)} / ${formatBytes(task.totalBytes)} • ${formatSpeed(task.speedBytesPerSec)}',
-                                              style: const TextStyle(
-                                                color:
-                                                    VegaColors.lightSky,
-                                                fontSize: 11.5,
-                                              ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Text(
+                                            peer.name,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              color: pal.text,
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 15,
                                             ),
-                                            if (task.isActive)
-                                              Row(
-                                                children: [
-                                                  IconButton(
-                                                    visualDensity:
-                                                        VisualDensity.compact,
-                                                    icon: Icon(
-                                                      task.status ==
-                                                              TransferStatus
-                                                                  .paused
-                                                          ? Icons.play_arrow
-                                                          : Icons.pause,
-                                                      color: Colors.white,
-                                                      size: 18,
-                                                    ),
-                                                    onPressed: () {
-                                                      if (task.status ==
-                                                          TransferStatus
-                                                              .paused) {
-                                                        controller.engine
-                                                            .resumeTransfer(
-                                                                task.id);
-                                                      } else {
-                                                        controller.engine
-                                                            .pauseTransfer(
-                                                                task.id);
-                                                      }
-                                                    },
-                                                  ),
-                                                  IconButton(
-                                                    visualDensity:
-                                                        VisualDensity.compact,
-                                                    icon: const Icon(
-                                                      Icons.close,
-                                                      color: Colors.white70,
-                                                      size: 18,
-                                                    ),
-                                                    onPressed: () => controller
-                                                        .engine
-                                                        .cancelTransfer(
-                                                            task.id),
-                                                  ),
-                                                ],
-                                              ),
-                                          ],
+                                          ),
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: pal.field,
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                          ),
+                                          child: Text(
+                                            peer.transport ==
+                                                    TransportMode.wifiDirect
+                                                ? s.t('Direct', 'डायरेक्ट')
+                                                : 'LAN',
+                                            style: TextStyle(
+                                              color: pal.textMuted,
+                                              fontSize: 12,
+                                            ),
+                                          ),
                                         ),
                                       ],
                                     ),
                                   );
                                 },
-                              )
-                            : peers.isEmpty
-                                ? const Center(
-                                    child: Text(
-                                      'Scanning Wi-Fi Direct & LAN mDNS...\nOr tap QR / IP icon above.',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: VegaColors.lightSky,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  )
-                                : ListView.separated(
-                                    itemCount: peers.length,
-                                    separatorBuilder: (_, __) =>
-                                        const SizedBox(height: 8),
-                                    itemBuilder: (_, i) {
-                                      final peer = peers[i];
-                                      return InkWell(
-                                        onTap: () => _sendToPeer(peer),
-                                        borderRadius: BorderRadius.circular(14),
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 14,
-                                            vertical: 12,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: VegaColors.deepCanvas,
-                                            borderRadius:
-                                                BorderRadius.circular(14),
-                                            border: Border.all(
-                                              color: VegaColors
-                                                  .borderMidnight,
-                                            ),
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              Icon(
-                                                peer.platform == 'windows' ||
-                                                        peer.platform == 'macos'
-                                                    ? Icons.laptop_mac
-                                                    : Icons.smartphone,
-                                                color: VegaColors
-                                                    .vibrantOrange,
-                                              ),
-                                              const SizedBox(width: 12),
-                                              Expanded(
-                                                child: Text(
-                                                  peer.name,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.w600,
-                                                    fontSize: 15,
-                                                  ),
-                                                ),
-                                              ),
-                                              Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                  horizontal: 10,
-                                                  vertical: 4,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: VegaColors
-                                                      .cardMidnight,
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                ),
-                                                child: Text(
-                                                  peer.transport ==
-                                                          TransportMode
-                                                              .wifiDirect
-                                                      ? 'Direct'
-                                                      : 'LAN',
-                                                  style: const TextStyle(
-                                                    color: VegaColors
-                                                        .lightSky,
-                                                    fontSize: 12,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                      ),
-                    ],
+                              ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -598,7 +549,7 @@ class _OrangeRadarPainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.3
-        ..color = VegaColors.electricBlue.withValues(alpha: 0.45),
+        ..color = VegaColors.saffron.withValues(alpha: 0.45),
     );
 
     // Crosshairs
@@ -624,7 +575,7 @@ class _OrangeRadarPainter extends CustomPainter {
         endAngle: math.pi * 0.35,
         colors: [
           Colors.transparent,
-          VegaColors.electricBlue.withValues(alpha: 0.45),
+          VegaColors.saffron.withValues(alpha: 0.45),
         ],
         transform: GradientRotation(angle),
       ).createShader(sweepRect);
@@ -652,7 +603,9 @@ class _OrangeRadarPainter extends CustomPainter {
 }
 
 class _RadarQrScannerPage extends StatefulWidget {
-  const _RadarQrScannerPage();
+  final String title;
+
+  const _RadarQrScannerPage({required this.title});
 
   @override
   State<_RadarQrScannerPage> createState() => _RadarQrScannerPageState();
@@ -664,7 +617,7 @@ class _RadarQrScannerPageState extends State<_RadarQrScannerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Scan Receiver QR')),
+      appBar: AppBar(title: Text(widget.title)),
       body: MobileScanner(
         onDetect: (capture) {
           if (_handled) return;

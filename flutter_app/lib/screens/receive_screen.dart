@@ -191,7 +191,7 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
             const SizedBox(height: 18),
             Text(
               s.t('Incoming Files', 'आने वाली फ़ाइलें'),
-              style: text.titleMedium?.copyWith(color: pal.text, fontFamily: 'serif'),
+              style: text.titleMedium?.copyWith(color: pal.text, fontFamily: 'Cinzel', fontFamilyFallback: const ['NotoSansDevanagari']),
             ),
             const SizedBox(height: 10),
             ...receiveTasks.map((task) {

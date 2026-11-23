@@ -133,7 +133,7 @@ class HelpScreen extends ConsumerWidget {
               children: [
                 Text(
                   s.t('Common Questions', 'आम सवाल'),
-                  style: text.titleMedium?.copyWith(color: p.text, fontFamily: 'serif'),
+                  style: text.titleMedium?.copyWith(color: p.text, fontFamily: 'Cinzel', fontFamilyFallback: const ['NotoSansDevanagari']),
                 ),
                 const SizedBox(height: 12),
                 for (final q in faqs) ...[

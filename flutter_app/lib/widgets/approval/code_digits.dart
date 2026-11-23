@@ -79,7 +79,7 @@ class _CodeDigitsState extends State<CodeDigits> with SingleTickerProviderStateM
     final style = TextStyle(
       fontSize: size,
       fontWeight: FontWeight.w700,
-      fontFamily: 'serif',
+      fontFamily: 'Cinzel', fontFamilyFallback: const ['NotoSansDevanagari'],
       height: 1.1,
       color: color,
       fontFeatures: const [FontFeature.tabularFigures()],

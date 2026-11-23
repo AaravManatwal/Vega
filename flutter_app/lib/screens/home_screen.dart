@@ -273,7 +273,7 @@ class _TopBar extends StatelessWidget {
           style: TextStyle(
             color: p.dark ? VegaColors.sandstoneGold : VegaColors.brownMuted,
             fontSize: 13,
-            fontFamily: 'serif',
+            fontFamily: 'Cinzel', fontFamilyFallback: const ['NotoSansDevanagari'],
           ),
         ),
         const Spacer(),

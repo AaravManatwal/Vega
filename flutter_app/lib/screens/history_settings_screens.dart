@@ -441,7 +441,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               children: [
                 Text(
                   s.t('Security & Speed', 'सुरक्षा और स्पीड'),
-                  style: text.titleMedium?.copyWith(color: p.text, fontFamily: 'serif'),
+                  style: text.titleMedium?.copyWith(color: p.text, fontFamily: 'Cinzel', fontFamilyFallback: const ['NotoSansDevanagari']),
                 ),
                 const SizedBox(height: 6),
                 toggle(

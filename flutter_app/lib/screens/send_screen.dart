@@ -404,7 +404,7 @@ class _SendScreenState extends ConsumerState<SendScreen> {
                                   s.t('Write Text or Link to Send', 'भेजने के लिए टेक्स्ट या लिंक लिखें'),
                                   style: text.titleSmall?.copyWith(
                                     color: pal.text,
-                                    fontFamily: 'serif',
+                                    fontFamily: 'Cinzel', fontFamilyFallback: const ['NotoSansDevanagari'],
                                     fontWeight: FontWeight.w800,
                                   ),
                                 ),

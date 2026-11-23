@@ -10,10 +10,10 @@ class VegaComponents {
   static TextTheme textTheme(TextTheme base) {
     return base.copyWith(
       // Display text uses the serif face, like the web design's heritage headings.
-      displaySmall: base.displaySmall?.copyWith(fontFamily: 'serif', fontWeight: FontWeight.w700),
-      headlineMedium: base.headlineMedium?.copyWith(fontFamily: 'serif', fontWeight: FontWeight.w700),
-      headlineSmall: base.headlineSmall?.copyWith(fontFamily: 'serif', fontWeight: FontWeight.w700),
-      titleLarge: base.titleLarge?.copyWith(fontFamily: 'serif', fontWeight: FontWeight.w700),
+      displaySmall: base.displaySmall?.copyWith(fontFamily: 'Cinzel', fontWeight: FontWeight.w700),
+      headlineMedium: base.headlineMedium?.copyWith(fontFamily: 'Cinzel', fontWeight: FontWeight.w700),
+      headlineSmall: base.headlineSmall?.copyWith(fontFamily: 'Cinzel', fontWeight: FontWeight.w700),
+      titleLarge: base.titleLarge?.copyWith(fontFamily: 'Cinzel', fontWeight: FontWeight.w700),
       titleMedium: base.titleMedium?.copyWith(fontWeight: FontWeight.w600),
       labelLarge: base.labelLarge?.copyWith(
         fontWeight: FontWeight.w600,
