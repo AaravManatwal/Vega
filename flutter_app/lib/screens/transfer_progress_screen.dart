@@ -78,6 +78,7 @@ class TransferProgressScreen extends ConsumerWidget {
             const SizedBox(height: 10),
             Center(
               child: ProgressRing(
+                hindi: hi,
                 progress: task.progress,
                 speedBytesPerSec: done ? 0 : task.speedBytesPerSec,
                 remaining: _remaining(task),

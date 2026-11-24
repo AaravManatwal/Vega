@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../l10n/vega_strings.dart';
+import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 import 'home_screen.dart';
 
 /// Three short pages shown once, the first time Vega opens.
-class OnboardingScreen extends StatefulWidget {
+class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
 
   static const String prefsKey = 'vega_onboarded_v1';
@@ -19,7 +22,7 @@ class OnboardingScreen extends StatefulWidget {
   }
 
   @override
-  State<OnboardingScreen> createState() => _OnboardingScreenState();
+  ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
 class _Page {
@@ -29,27 +32,33 @@ class _Page {
   final String text;
 }
 
-class _OnboardingScreenState extends State<OnboardingScreen> {
-  static const _pages = <_Page>[
-    _Page(
-      Icons.bolt_rounded,
-      'Internet ke bina, tezi se',
-      'Vega aas-paas ke phone ya laptop ko seedha Wi-Fi par file bhejta hai. '
-          'Na data lagta hai, na koi server beech me aata hai.',
-    ),
-    _Page(
-      Icons.verified_user_rounded,
-      'Pehle code milaiye, phir Accept',
-      'Dono phone par ek 6 ank ka code dikhta hai. Code same ho to hi file lein. '
-          'Har file locked rehti hai aur poori aane par jaanchi jaati hai.',
-    ),
-    _Page(
-      Icons.pause_circle_rounded,
-      'Beech me ruk jaye to koi baat nahi',
-      'Connection toot jaye to transfer wahin se dobara shuru hota hai. '
-          'Aap Pause, Resume ya Cancel jab chahein kar sakte hain.',
-    ),
-  ];
+class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
+  List<_Page> _pages(VegaStrings s) => [
+        _Page(
+          Icons.bolt_rounded,
+          s.t('Fast, without internet', 'इंटरनेट के बिना, तेज़ी से'),
+          s.t(
+            'Vega sends files straight to nearby phones and laptops over Wi-Fi. No mobile data, no server in between.',
+            'Vega आस-पास के फ़ोन या लैपटॉप को सीधे Wi-Fi पर फ़ाइल भेजता है। न डेटा लगता है, न बीच में कोई सर्वर।',
+          ),
+        ),
+        _Page(
+          Icons.verified_user_rounded,
+          s.t('Match the code, then Accept', 'पहले कोड मिलाइए, फिर Accept'),
+          s.t(
+            'Both phones show the same 6-digit code. Accept only if it matches. Every file stays locked and is verified when it arrives.',
+            'दोनों फ़ोन पर एक जैसा 6 अंकों का कोड दिखता है। कोड मिले तभी फ़ाइल लें। हर फ़ाइल लॉक रहती है और पूरी आने पर जाँची जाती है।',
+          ),
+        ),
+        _Page(
+          Icons.pause_circle_rounded,
+          s.t('Interrupted? No problem', 'बीच में रुक जाए तो कोई बात नहीं'),
+          s.t(
+            'If the connection drops, the transfer resumes where it stopped. You can Pause, Resume or Cancel any time.',
+            'कनेक्शन टूट जाए तो ट्रांसफ़र वहीं से दोबारा शुरू होता है। आप जब चाहें Pause, Resume या Cancel कर सकते हैं।',
+          ),
+        ),
+      ];
 
   final PageController _controller = PageController();
   int _index = 0;
@@ -72,7 +81,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _next() {
-    if (_index >= _pages.length - 1) {
+    if (_index >= 2) {
       _finish();
     } else {
       _controller.nextPage(duration: VegaMotion.medium, curve: VegaMotion.decelerate);
@@ -83,7 +92,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
-    final last = _index == _pages.length - 1;
+    final hi = ref.watch(hindiProvider);
+    final str = VegaStrings(hi);
+    final pages = _pages(str);
+    final last = _index == pages.length - 1;
 
     return Scaffold(
       backgroundColor: cs.surface,
@@ -92,20 +104,30 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
           child: Column(
             children: [
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: _finish,
-                  child: const Text('Chhodiye'),
-                ),
+              Row(
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      final c = ref.read(vegaProvider.notifier);
+                      c.updateSettings(
+                          ref.read(vegaProvider).settings.copyWith(language: hi ? 'en' : 'hi'));
+                    },
+                    child: Text(hi ? 'English' : 'हिन्दी'),
+                  ),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: _finish,
+                    child: Text(str.t('Skip', 'छोड़ें')),
+                  ),
+                ],
               ),
               Expanded(
                 child: PageView.builder(
                   controller: _controller,
-                  itemCount: _pages.length,
+                  itemCount: pages.length,
                   onPageChanged: (i) => setState(() => _index = i),
                   itemBuilder: (context, i) {
-                    final page = _pages[i];
+                    final page = pages[i];
                     return Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -145,7 +167,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  for (int i = 0; i < _pages.length; i++)
+                  for (int i = 0; i < pages.length; i++)
                     AnimatedContainer(
                       duration: VegaMotion.short,
                       margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -164,7 +186,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 height: 54,
                 child: FilledButton(
                   onPressed: _next,
-                  child: Text(last ? 'Shuru karein' : 'Aage'),
+                  child: Text(last ? str.t('Get started', 'शुरू करें') : str.t('Next', 'आगे')),
                 ),
               ),
             ],

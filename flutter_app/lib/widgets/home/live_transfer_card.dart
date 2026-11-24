@@ -19,7 +19,7 @@ class LiveTransferCard extends StatelessWidget {
 
     return Semantics(
       button: true,
-      label: '${sending ? 'Bhej rahe hain' : 'Mil raha hai'}: ${task.fileName}, $pct percent',
+      label: '${sending ? 'Sending' : 'Receiving'}: ${task.fileName}, $pct%',
       child: Material(
         color: cs.surfaceContainerHigh,
         shape: RoundedRectangleBorder(

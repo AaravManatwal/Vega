@@ -8,6 +8,7 @@ import '../../theme/app_theme.dart';
 /// speed and time left in the middle.
 class ProgressRing extends StatefulWidget {
   const ProgressRing({
+    this.hindi = false,
     super.key,
     required this.progress,
     required this.speedBytesPerSec,
@@ -16,6 +17,7 @@ class ProgressRing extends StatefulWidget {
     this.size = 240,
   });
 
+  final bool hindi;
   final double progress;
   final double speedBytesPerSec;
 
@@ -48,12 +50,12 @@ class _ProgressRingState extends State<ProgressRing> with SingleTickerProviderSt
     super.dispose();
   }
 
-  static String _eta(Duration? d) {
-    if (d == null) return 'samay aanka ja raha hai';
+  static String _eta(Duration? d, bool hi) {
+    if (d == null) return hi ? 'समय का अनुमान लग रहा है' : 'estimating time';
     final s = d.inSeconds;
-    if (s < 60) return 'lagbhag $s second baaki';
+    if (s < 60) return hi ? 'लगभग $s सेकंड बाकी' : 'about $s s left';
     final m = (s / 60).ceil();
-    return 'lagbhag $m minute baaki';
+    return hi ? 'लगभग $m मिनट बाकी' : 'about $m min left';
   }
 
   @override
@@ -66,8 +68,8 @@ class _ProgressRingState extends State<ProgressRing> with SingleTickerProviderSt
 
     return Semantics(
       label: widget.done
-          ? 'Transfer poora hua'
-          : '$pct percent poora, ${formatSpeed(widget.speedBytesPerSec)}, ${_eta(widget.remaining)}',
+          ? (widget.hindi ? 'ट्रांसफ़र पूरा हुआ' : 'Transfer complete')
+          : '$pct%, ${formatSpeed(widget.speedBytesPerSec)}, ${_eta(widget.remaining, widget.hindi)}',
       child: ExcludeSemantics(
         child: SizedBox(
           width: widget.size,
@@ -103,7 +105,7 @@ class _ProgressRingState extends State<ProgressRing> with SingleTickerProviderSt
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        widget.done ? 'Poora ho gaya' : _eta(widget.remaining),
+                        widget.done ? (widget.hindi ? 'पूरा हो गया' : 'Complete') : _eta(widget.remaining, widget.hindi),
                         style: text.bodySmall?.copyWith(color: cs.onSurfaceVariant),
                       ),
                     ],
