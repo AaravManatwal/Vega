@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../theme/app_theme.dart';
 
 /// The main call-to-action of the web design: saffron gradient pill with a pale gold
@@ -79,7 +80,10 @@ class SaffronButton extends StatelessWidget {
               type: MaterialType.transparency,
               child: InkWell(
                 borderRadius: BorderRadius.circular(height),
-                onTap: onPressed,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  onPressed!();
+                },
                 child: Center(child: content),
               ),
             ),

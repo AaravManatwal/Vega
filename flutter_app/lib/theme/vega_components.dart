@@ -31,6 +31,9 @@ class VegaComponents {
       scaffoldBackgroundColor:
           dark ? VegaColors.deepNavy : VegaColors.lightBackground,
       textTheme: textTheme(base.textTheme),
+      pageTransitionsTheme: const PageTransitionsTheme(builders: {
+        TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),
+      }),
       appBarTheme: AppBarTheme(
         backgroundColor: dark ? VegaColors.deepCanvas : VegaColors.deepNavy,
         foregroundColor: Colors.white,

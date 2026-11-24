@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../theme/app_theme.dart';
 import 'heritage_palette.dart';
 
@@ -238,7 +239,10 @@ class _MedallionButtonState extends State<MedallionButton>
       child: ExcludeSemantics(
         child: InkWell(
           customBorder: const StadiumBorder(),
-          onTap: widget.onTap,
+          onTap: () {
+            HapticFeedback.lightImpact();
+            widget.onTap();
+          },
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
             child: Row(
