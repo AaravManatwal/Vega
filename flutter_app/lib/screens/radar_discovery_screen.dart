@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import '../widgets/heritage/wavy_progress.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -374,11 +375,7 @@ class _RadarDiscoveryScreenState extends ConsumerState<RadarDiscoveryScreen>
                                       ],
                                     ),
                                     const SizedBox(height: 6),
-                                    LinearProgressIndicator(
-                                      value: task.progress,
-                                      color: VegaColors.saffron,
-                                      backgroundColor: pal.softBorder,
-                                    ),
+                                    WavyProgress(value: task.progress),
                                     const SizedBox(height: 4),
                                     Row(
                                       mainAxisAlignment:

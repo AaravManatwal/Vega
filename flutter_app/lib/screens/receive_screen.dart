@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/heritage/wavy_progress.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -228,11 +229,7 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      LinearProgressIndicator(
-                        value: task.progress,
-                        color: VegaColors.saffron,
-                        backgroundColor: pal.softBorder,
-                      ),
+                      WavyProgress(value: task.progress),
                       const SizedBox(height: 6),
                       Text(
                         '${formatBytes(task.transferredBytes)} / ${formatBytes(task.totalBytes)} • ${formatSpeed(task.speedBytesPerSec)}',

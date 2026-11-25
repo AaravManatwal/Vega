@@ -4,7 +4,7 @@ import '../../theme/app_theme.dart';
 
 /// The main call-to-action of the web design: saffron gradient pill with a pale gold
 /// edge and a warm glow.
-class SaffronButton extends StatelessWidget {
+class SaffronButton extends StatefulWidget {
   const SaffronButton({
     super.key,
     required this.label,
@@ -23,8 +23,23 @@ class SaffronButton extends StatelessWidget {
   final double fontSize;
 
   @override
+  State<SaffronButton> createState() => _SaffronButtonState();
+}
+
+class _SaffronButtonState extends State<SaffronButton> {
+  bool _down = false;
+
+  @override
   Widget build(BuildContext context) {
+    final label = widget.label;
+    final onPressed = widget.onPressed;
+    final icon = widget.icon;
+    final height = widget.height;
+    final expand = widget.expand;
+    final fontSize = widget.fontSize;
     final enabled = onPressed != null;
+    final still = MediaQuery.disableAnimationsOf(context);
+    final radius = (_down && !still) ? 18.0 : height;
     final content = Row(
       mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -55,11 +70,13 @@ class SaffronButton extends StatelessWidget {
       child: ExcludeSemantics(
         child: Opacity(
           opacity: enabled ? 1 : 0.55,
-          child: Container(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            curve: Curves.easeOutBack,
             height: height,
             padding: EdgeInsets.symmetric(horizontal: expand ? 20 : 26),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(height),
+              borderRadius: BorderRadius.circular(radius),
               gradient: const LinearGradient(
                 colors: [
                   VegaColors.saffronDeep,
@@ -79,7 +96,8 @@ class SaffronButton extends StatelessWidget {
             child: Material(
               type: MaterialType.transparency,
               child: InkWell(
-                borderRadius: BorderRadius.circular(height),
+                borderRadius: BorderRadius.circular(radius),
+                onHighlightChanged: (v) => setState(() => _down = v),
                 onTap: () {
                   HapticFeedback.selectionClick();
                   onPressed!();

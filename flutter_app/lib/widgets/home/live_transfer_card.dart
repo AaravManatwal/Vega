@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../heritage/wavy_progress.dart';
 import '../../models/transfer_models.dart';
 import '../../theme/app_theme.dart';
 
@@ -61,7 +62,7 @@ class LiveTransferCard extends StatelessWidget {
                   tween: Tween(begin: 0, end: task.progress),
                   duration: VegaMotion.medium,
                   curve: VegaMotion.decelerate,
-                  builder: (context, v, _) => LinearProgressIndicator(value: v),
+                  builder: (context, v, _) => WavyProgress(value: v),
                 ),
               ],
             ),

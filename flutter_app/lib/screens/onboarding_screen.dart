@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../l10n/vega_strings.dart';
+import '../widgets/heritage/scallop_badge.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 import 'home_screen.dart';
@@ -131,18 +132,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     return Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Container(
-                          width: 148,
-                          height: 148,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [cs.primaryContainer, cs.tertiaryContainer],
-                            ),
-                          ),
-                          child: Icon(page.icon, size: 72, color: cs.onPrimaryContainer),
+                        ScallopBadge(
+                          icon: page.icon,
+                          size: 160,
+                          spin: true,
+                          color: cs.primaryContainer,
+                          iconColor: cs.onPrimaryContainer,
                         ),
                         const SizedBox(height: 36),
                         Text(

@@ -2,6 +2,7 @@ import 'dart:ui' show FontFeature;
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import '../widgets/heritage/scallop_badge.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
@@ -245,23 +246,11 @@ class _SendScreenState extends ConsumerState<SendScreen> {
     final sub = primary ? VegaColors.goldPale : pal.textMuted;
     final inner = Row(
       children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            color: primary ? Colors.white.withValues(alpha: 0.15) : pal.field,
-            border: Border.all(
-              color: primary
-                  ? VegaColors.goldBorder.withValues(alpha: 0.5)
-                  : pal.softBorder,
-            ),
-          ),
-          child: Icon(
-            icon,
-            size: 20,
-            color: primary ? Colors.white : pal.accentText,
-          ),
+        ScallopBadge(
+          icon: icon,
+          size: 42,
+          color: primary ? Colors.white.withValues(alpha: 0.2) : pal.accentText.withValues(alpha: 0.16),
+          iconColor: primary ? Colors.white : pal.accentText,
         ),
         const SizedBox(width: 10),
         Expanded(
