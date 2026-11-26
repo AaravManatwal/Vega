@@ -4,6 +4,7 @@ import '../l10n/vega_strings.dart';
 import '../models/transfer_models.dart';
 import '../state/app_state.dart';
 import '../widgets/heritage/heritage_page.dart';
+import '../widgets/heritage/mini_transfer_bar.dart';
 import '../widgets/heritage/heritage_palette.dart';
 import '../widgets/heritage/heritage_panel.dart';
 import '../widgets/heritage/saffron_button.dart';
@@ -68,7 +69,7 @@ class TransferProgressScreen extends ConsumerWidget {
         ? s.t('To ${task.peerName}', '${task.peerName} को')
         : s.t('From ${task.peerName}', '${task.peerName} से');
 
-    return HeritagePage(
+    return SuppressMiniBar(child: HeritagePage(
       title: title,
       subtitle: peerLine,
       child: SingleChildScrollView(
@@ -180,7 +181,7 @@ class TransferProgressScreen extends ConsumerWidget {
           ],
         ),
       ),
-    );
+    ));
   }
 
   Widget _actions(BuildContext context, WidgetRef ref, TransferTask task, bool sending,

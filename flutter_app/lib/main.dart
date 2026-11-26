@@ -5,7 +5,9 @@ import 'screens/splash_screen.dart';
 import 'services/foreground_service.dart';
 import 'state/app_state.dart';
 import 'theme/app_theme.dart';
+import 'screens/transfer_progress_screen.dart';
 import 'widgets/approval/approval_host.dart';
+import 'widgets/heritage/mini_transfer_bar.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,7 +33,25 @@ class VegaApp extends ConsumerWidget {
       builder: (context, child) => ApprovalHost(
         navigatorKey: _navigatorKey,
         messengerKey: _messengerKey,
-        child: child ?? const SizedBox.shrink(),
+        child: Stack(
+          children: [
+            Positioned.fill(child: child ?? const SizedBox.shrink()),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Material(
+                type: MaterialType.transparency,
+                child: MiniTransferBar(
+                  onOpen: (id) => _navigatorKey.currentState?.push(
+                    MaterialPageRoute<void>(
+                        builder: (_) => TransferProgressScreen(taskId: id)),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
       title: 'Vega',
       debugShowCheckedModeBanner: false,

@@ -73,7 +73,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final active = state.activeTasks;
     final controller = ref.read(vegaProvider.notifier);
 
-    return Scaffold(
+    return SuppressMiniBar(child: Scaffold(
       backgroundColor: p.pageGradient.first,
       drawer: HeritageDrawer(
         strings: s,
@@ -224,7 +224,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ),
       ),
-    );
+    ));
   }
 }
 
