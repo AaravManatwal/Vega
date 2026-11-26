@@ -7,11 +7,11 @@ import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/heritage/heritage_drawer.dart';
 import '../widgets/heritage/heritage_page.dart';
+import '../widgets/heritage/glass_dock.dart';
 import '../widgets/heritage/heritage_palette.dart';
 import '../widgets/heritage/mini_transfer_bar.dart';
 import '../widgets/heritage/home_stage.dart';
 import '../widgets/heritage/jali_background.dart';
-import '../widgets/heritage/saffron_button.dart';
 import '../widgets/home/live_transfer_card.dart';
 import '../widgets/vega_logo.dart';
 import 'browser_share_screen.dart';
@@ -202,13 +202,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                       ),
                                       const SizedBox(height: 14),
                                     ],
-                                    SaffronButton(
-                                      label: s.t('History', 'इतिहास'),
-                                      icon: Icons.history_rounded,
-                                      expand: false,
-                                      height: 46,
-                                      fontSize: 14.5,
-                                      onPressed: () => _push(const HistoryScreen()),
+                                    GlassDock(
+                                      items: [
+                                        DockItem(
+                                          icon: Icons.home_rounded,
+                                          label: s.t('Home', 'होम'),
+                                          onTap: () {},
+                                        ),
+                                        DockItem(
+                                          icon: Icons.history_rounded,
+                                          label: s.t('History', 'इतिहास'),
+                                          onTap: () => _push(const HistoryScreen()),
+                                        ),
+                                        DockItem(
+                                          icon: Icons.settings_rounded,
+                                          label: s.t('Settings', 'सेटिंग्स'),
+                                          onTap: () => _push(const SettingsScreen()),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
