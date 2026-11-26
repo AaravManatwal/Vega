@@ -7,6 +7,7 @@ import '../services/platform_bridge.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/heritage/heritage_drawer.dart';
+import '../widgets/heritage/heritage_page.dart';
 import '../widgets/heritage/glass_dock.dart';
 import '../widgets/heritage/scallop_badge.dart';
 import '../widgets/heritage/heritage_palette.dart';
