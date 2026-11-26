@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
-import '../widgets/vega_logo.dart';
 import 'home_screen.dart';
 import 'onboarding_screen.dart';
 
@@ -96,18 +95,23 @@ class _VegaSplashScreenState extends State<VegaSplashScreen>
                               painter: _PulsePainter(_pulse.value),
                             ),
                           ),
-                        Container(
+                        DecoratedBox(
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(46),
+                            shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: VegaColors.saffron.withValues(alpha: 0.4),
-                                blurRadius: 44,
-                                spreadRadius: 2,
+                                color: VegaColors.saffron.withValues(alpha: 0.45),
+                                blurRadius: 60,
+                                spreadRadius: 4,
                               ),
                             ],
                           ),
-                          child: const VegaLogo(size: 168),
+                          child: Image.asset(
+                            'assets/branding/vega_mark.png',
+                            width: 150,
+                            height: 150,
+                            filterQuality: FilterQuality.high,
+                          ),
                         ),
                       ],
                     ),
