@@ -2,6 +2,7 @@ import 'dart:ui' show FontFeature;
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import '../widgets/heritage/motion_widgets.dart';
 import '../widgets/heritage/scallop_badge.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -321,6 +322,10 @@ class _SendScreenState extends ConsumerState<SendScreen> {
     final pal = HeritagePalette.of(context);
     final text = Theme.of(context).textTheme;
     final selectedCount = _selectedIndices.length;
+    var selectedBytes = 0;
+    for (final i in _selectedIndices) {
+      selectedBytes += _items[i].size;
+    }
 
     final visible = <int>[
       for (var i = 0; i < _items.length; i++)
@@ -521,7 +526,7 @@ class _SendScreenState extends ConsumerState<SendScreen> {
                                   final idx = visible[i];
                                   final item = _items[idx];
                                   final checked = _selectedIndices.contains(idx);
-                                  return HeritagePanel(
+                                  return StaggerIn(index: i, child: HeritagePanel(
                                     tile: true,
                                     highlight: checked,
                                     radius: 18,
@@ -551,11 +556,28 @@ class _SendScreenState extends ConsumerState<SendScreen> {
                                             color: checked ? null : pal.field,
                                             border: Border.all(color: pal.softBorder),
                                           ),
-                                          child: Icon(
-                                            _iconFor(item.kind),
-                                            size: 20,
-                                            color: checked ? Colors.white : pal.textMuted,
-                                          ),
+                                          child: item.kind == _CategoryKind.photos
+                                              ? ClipRRect(
+                                                  borderRadius: BorderRadius.circular(11),
+                                                  child: Image.file(
+                                                    File(item.path),
+                                                    fit: BoxFit.cover,
+                                                    // Small decode size keeps memory flat on big photo lists;
+                                                    // Flutter's image cache keeps recent ones.
+                                                    cacheWidth: 120,
+                                                    gaplessPlayback: true,
+                                                    errorBuilder: (_, __, ___) => Icon(
+                                                      _iconFor(item.kind),
+                                                      size: 20,
+                                                      color: pal.textMuted,
+                                                    ),
+                                                  ),
+                                                )
+                                              : Icon(
+                                                  _iconFor(item.kind),
+                                                  size: 20,
+                                                  color: checked ? Colors.white : pal.textMuted,
+                                                ),
                                         ),
                                         const SizedBox(width: 12),
                                         Expanded(
@@ -599,7 +621,7 @@ class _SendScreenState extends ConsumerState<SendScreen> {
                                         ),
                                       ],
                                     ),
-                                  );
+                                  ));
                                 },
                               ),
                       ),
@@ -607,11 +629,45 @@ class _SendScreenState extends ConsumerState<SendScreen> {
                   ),
           ),
           const SizedBox(height: 12),
-          SaffronButton(
-            label: s.t('Scan for Receivers', 'रिसीवर खोजें'),
-            icon: Icons.podcasts_rounded,
-            fontSize: 16.5,
-            onPressed: () => _openRadar(s),
+          HeritagePanel(
+            padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        selectedCount == 0
+                            ? s.t('Nothing selected', 'कुछ चुना नहीं')
+                            : s.t('$selectedCount selected', '$selectedCount चुनी गईं'),
+                        style: TextStyle(
+                            color: pal.text, fontWeight: FontWeight.w700, fontSize: 15),
+                      ),
+                      Text(
+                        formatBytes(selectedBytes),
+                        style: TextStyle(
+                          color: pal.textMuted,
+                          fontSize: 13,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  width: 180,
+                  child: SaffronButton(
+                    label: s.t('Send Now', 'अभी भेजें'),
+                    icon: Icons.podcasts_rounded,
+                    fontSize: 15.5,
+                    height: 48,
+                    onPressed: () => _openRadar(s),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

@@ -5,6 +5,7 @@ import '../models/transfer_models.dart';
 import '../state/app_state.dart';
 import '../widgets/heritage/heritage_page.dart';
 import '../widgets/heritage/mini_transfer_bar.dart';
+import '../widgets/heritage/motion_widgets.dart';
 import '../widgets/heritage/heritage_palette.dart';
 import '../widgets/heritage/heritage_panel.dart';
 import '../widgets/heritage/saffron_button.dart';
@@ -78,7 +79,9 @@ class TransferProgressScreen extends ConsumerWidget {
           children: [
             const SizedBox(height: 10),
             Center(
-              child: ProgressRing(
+              child: done
+                  ? const CompletionBurst(size: 240)
+                  : ProgressRing(
                 hindi: hi,
                 progress: task.progress,
                 speedBytesPerSec: done ? 0 : task.speedBytesPerSec,

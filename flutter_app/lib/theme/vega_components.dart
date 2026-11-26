@@ -1,3 +1,4 @@
+import 'dart:ui' show FontFeature;
 import 'package:flutter/material.dart';
 import 'vega_colors.dart';
 
@@ -7,7 +8,26 @@ class VegaComponents {
   static const double _cardRadius = 20;
   static const double _controlRadius = 16;
 
+  static const List<FontFeature> _tnum = [FontFeature.tabularFigures()];
+
+  /// Digits all have the same width, so live numbers (speed, %, sizes) never wobble.
+  static TextStyle? _tab(TextStyle? s) => s?.copyWith(fontFeatures: _tnum);
+
   static TextTheme textTheme(TextTheme base) {
+    final t = _textTheme(base);
+    return t.copyWith(
+      titleSmall: _tab(t.titleSmall),
+      titleMedium: _tab(t.titleMedium),
+      bodyLarge: _tab(t.bodyLarge),
+      bodyMedium: _tab(t.bodyMedium),
+      bodySmall: _tab(t.bodySmall),
+      labelLarge: _tab(t.labelLarge),
+      labelMedium: _tab(t.labelMedium),
+      labelSmall: _tab(t.labelSmall),
+    );
+  }
+
+  static TextTheme _textTheme(TextTheme base) {
     return base.copyWith(
       // Display text uses the serif face, like the web design's heritage headings.
       displaySmall: base.displaySmall?.copyWith(fontFamily: 'Cinzel', fontWeight: FontWeight.w700),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/heritage/motion_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../l10n/vega_strings.dart';
 import '../models/transfer_models.dart';
@@ -191,7 +192,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                       final tint = !ok
                           ? const Color(0xFFEF4444)
                           : (isSend ? VegaColors.saffron : VegaColors.success);
-                      return HeritagePanel(
+                      return StaggerIn(index: i, child: HeritagePanel(
                         tile: true,
                         radius: 18,
                         padding: const EdgeInsets.all(14),
@@ -254,7 +255,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                             ),
                           ],
                         ),
-                      );
+                      ));
                     },
                   ),
           ),
