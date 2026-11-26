@@ -8,6 +8,7 @@ import '../theme/app_theme.dart';
 import '../widgets/heritage/heritage_drawer.dart';
 import '../widgets/heritage/heritage_page.dart';
 import '../widgets/heritage/heritage_palette.dart';
+import '../widgets/heritage/mini_transfer_bar.dart';
 import '../widgets/heritage/home_stage.dart';
 import '../widgets/heritage/jali_background.dart';
 import '../widgets/heritage/saffron_button.dart';
