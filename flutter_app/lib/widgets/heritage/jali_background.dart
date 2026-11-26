@@ -4,9 +4,10 @@ import 'heritage_palette.dart';
 /// Page background: warm/navy gradient, Rajasthani jali lattice and (optionally)
 /// the cusped jharokha arch outline used on every screen of the web design.
 class JaliBackground extends StatelessWidget {
-  const JaliBackground({super.key, this.arch = true, this.child});
+  const JaliBackground({super.key, this.arch = false, this.pattern = false, this.child});
 
   final bool arch;
+  final bool pattern;
   final Widget? child;
 
   @override
@@ -20,12 +21,14 @@ class JaliBackground extends StatelessWidget {
           colors: p.pageGradient,
         ),
       ),
-      child: RepaintBoundary(
-        child: CustomPaint(
-          painter: _JaliPainter(dark: p.dark, arch: arch),
-          child: child ?? const SizedBox.expand(),
-        ),
-      ),
+      child: (pattern || arch)
+          ? RepaintBoundary(
+              child: CustomPaint(
+                painter: _JaliPainter(dark: p.dark, arch: arch),
+                child: child ?? const SizedBox.expand(),
+              ),
+            )
+          : (child ?? const SizedBox.expand()),
     );
   }
 }
