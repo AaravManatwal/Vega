@@ -100,3 +100,63 @@ jobs:
           gh release create latest vega-debug.apk --prerelease \
             --title "Vega debug build (latest)" \
             --notes "Debug APK from commit ${{ github.sha }}. Install on Android 13 or newer."
+
+  android-release-apk:
+    runs-on: ubuntu-latest
+    needs: flutter-tests
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: flutter_app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Prepare release signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "Using the permanent release key from repository secrets."
+            echo "$KEYSTORE_BASE64" | base64 -d > android/vega-release.jks
+            PASS="$KEYSTORE_PASSWORD"; ALIAS="${KEY_ALIAS:-vega-release}"
+          else
+            echo "::warning::No KEYSTORE_BASE64 secret: signing with a temporary key. Uninstall the old Vega before installing this APK."
+            PASS="$(openssl rand -hex 12)"; ALIAS="vega-release"
+            keytool -genkeypair -v -keystore android/vega-release.jks -alias "$ALIAS" \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass "$PASS" -keypass "$PASS" \
+              -dname "CN=Vega, O=Manatwal Innovations, C=IN"
+          fi
+          {
+            echo "storePassword=$PASS"
+            echo "keyPassword=$PASS"
+            echo "keyAlias=$ALIAS"
+            echo "storeFile=../vega-release.jks"
+          } > android/key.properties
+      - name: Build release APK
+        run: flutter build apk --release --target-platform android-arm64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vega-release-apk
+          path: flutter_app/build/app/outputs/flutter-apk/app-release.apk
+      - name: Publish release APK (direct download link for the phone)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp build/app/outputs/flutter-apk/app-release.apk vega.apk
+          gh release delete release --cleanup-tag --yes || true
+          gh release create release vega.apk \
+            --title "Vega (release build)" \
+            --notes "Signed release APK from commit ${{ github.sha }}. Install on Android 13 or newer."
