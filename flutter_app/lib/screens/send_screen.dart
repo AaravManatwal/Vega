@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '../widgets/heritage/motion_widgets.dart';
-import '../widgets/heritage/scallop_badge.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
@@ -238,81 +237,46 @@ class _SendScreenState extends ConsumerState<SendScreen> {
     required HeritagePalette pal,
     required IconData icon,
     required String title,
-    required String subtitle,
     required VoidCallback onTap,
     bool primary = false,
     bool highlight = false,
   }) {
-    final fg = primary ? Colors.white : pal.text;
-    final sub = primary ? VegaColors.goldPale : pal.textMuted;
-    final inner = Row(
-      children: [
-        ScallopBadge(
-          icon: icon,
-          size: 42,
-          color: primary ? Colors.white.withValues(alpha: 0.2) : pal.accentText.withValues(alpha: 0.16),
-          iconColor: primary ? Colors.white : pal.accentText,
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: fg, fontSize: 14, fontWeight: FontWeight.w800),
-              ),
-              Text(
-                subtitle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: sub, fontSize: 11),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-
-    if (primary) {
-      return Material(
+    final on = primary || highlight;
+    final fg = on ? Colors.white : pal.text;
+    final ic = on ? Colors.white : pal.accentText;
+    return Semantics(
+      button: true,
+      label: title,
+      child: Material(
         type: MaterialType.transparency,
         child: InkWell(
-          borderRadius: BorderRadius.circular(18),
-          onTap: onTap,
+          borderRadius: BorderRadius.circular(24),
+          onTap: () {
+            HapticFeedback.selectionClick();
+            onTap();
+          },
           child: Ink(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [VegaColors.saffron, VegaColors.saffronDeep, VegaColors.saffronShade],
-              ),
-              border: Border.all(color: VegaColors.goldBorder),
-              boxShadow: [
-                BoxShadow(
-                  color: VegaColors.saffronDeep.withValues(alpha: 0.3),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
+              borderRadius: BorderRadius.circular(24),
+              color: on ? VegaColors.saffronDeep : pal.tile,
+              border: on ? null : Border.all(color: pal.softBorder),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, size: 26, color: ic),
+                const SizedBox(height: 6),
+                Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: fg, fontSize: 12, fontWeight: FontWeight.w600),
                 ),
               ],
             ),
-            child: inner,
           ),
         ),
-      );
-    }
-    return HeritagePanel(
-      tile: true,
-      highlight: highlight,
-      radius: 18,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-      onTap: onTap,
-      child: inner,
+      ),
     );
   }
 
@@ -343,33 +307,30 @@ class _SendScreenState extends ConsumerState<SendScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           GridView.count(
-            crossAxisCount: 2,
+            crossAxisCount: 4,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: 2.15,
+            mainAxisSpacing: 10,
+            crossAxisSpacing: 10,
+            childAspectRatio: 0.92,
             children: [
               _tile(
                 pal: pal,
                 icon: Icons.note_add_outlined,
-                title: s.t('Pick Files', 'फ़ाइलें चुनें'),
-                subtitle: s.t('Photos, video, docs', 'फ़ोटो, वीडियो, PDF'),
+                title: s.t('Files', 'फ़ाइलें'),
                 primary: true,
                 onTap: _pickFiles,
               ),
               _tile(
                 pal: pal,
                 icon: Icons.drive_folder_upload_outlined,
-                title: s.t('Pick Folder', 'फ़ोल्डर चुनें'),
-                subtitle: s.t('Entire directory', 'पूरा फ़ोल्डर भेजें'),
+                title: s.t('Folder', 'फ़ोल्डर'),
                 onTap: _pickFolder,
               ),
               _tile(
                 pal: pal,
                 icon: Icons.description_outlined,
-                title: s.t('Text Note', 'टेक्स्ट / नोट'),
-                subtitle: s.t('Type text or link', 'लिंक या संदेश लिखें'),
+                title: s.t('Note', 'नोट'),
                 highlight: _noteMode,
                 onTap: () => setState(() => _noteMode = !_noteMode),
               ),
@@ -377,7 +338,6 @@ class _SendScreenState extends ConsumerState<SendScreen> {
                 pal: pal,
                 icon: Icons.photo_library_outlined,
                 title: s.t('Gallery', 'गैलरी'),
-                subtitle: s.t('Photos & videos', 'फ़ोटो और वीडियो'),
                 onTap: () => _pickFiles(type: FileType.media),
               ),
             ],

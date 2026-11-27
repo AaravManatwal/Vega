@@ -12,7 +12,7 @@ class HeritagePage extends StatelessWidget {
     this.trailing,
     this.onBack,
     this.showBack = true,
-    this.arch = true,
+    this.arch = false,
     this.padding = const EdgeInsets.fromLTRB(20, 14, 20, 20),
     required this.child,
   });
