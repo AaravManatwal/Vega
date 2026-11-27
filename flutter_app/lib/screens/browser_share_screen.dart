@@ -1,3 +1,4 @@
+import 'dart:ui' show FontFeature;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -51,7 +52,9 @@ class _BrowserShareScreenState extends ConsumerState<BrowserShareScreen> {
     final p = HeritagePalette.of(context);
     final ip = state.localIps.isNotEmpty ? state.localIps.first : '127.0.0.1';
     final port = state.browserPortalPort ?? 8080;
-    final url = 'http://$ip:$port/?k=${controller.browserServer.accessKey}';
+    final pin = controller.browserServer.accessKey;
+    final shortUrl = '$ip:$port';
+    final url = 'http://$ip:$port/?k=$pin';
     final running = state.isBrowserPortalRunning;
 
     return HeritagePage(
@@ -65,8 +68,8 @@ class _BrowserShareScreenState extends ConsumerState<BrowserShareScreen> {
               children: [
                 Text(
                   s.t(
-                    'Open this address in a browser on Windows, Mac or Linux, on the same Wi-Fi or hotspot:',
-                    'इसी Wi-Fi या हॉटस्पॉट पर Windows, Mac या Linux के ब्राउज़र में यह पता खोलें:',
+                    'On the same Wi-Fi or hotspot, type this short address in the browser, or scan the QR (no PIN needed):',
+                    'इसी Wi-Fi या हॉटस्पॉट पर ब्राउज़र में यह छोटा पता लिखें, या QR स्कैन करें (PIN नहीं चाहिए):',
                   ),
                   textAlign: TextAlign.center,
                   style: TextStyle(color: p.textMuted, fontSize: 13.5, height: 1.4),
@@ -85,7 +88,7 @@ class _BrowserShareScreenState extends ConsumerState<BrowserShareScreen> {
                   InkWell(
                     borderRadius: BorderRadius.circular(14),
                     onTap: () {
-                      Clipboard.setData(ClipboardData(text: url));
+                      Clipboard.setData(ClipboardData(text: shortUrl));
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text(s.t('Address copied', 'पता कॉपी हुआ'))),
                       );
@@ -102,7 +105,7 @@ class _BrowserShareScreenState extends ConsumerState<BrowserShareScreen> {
                         children: [
                           Flexible(
                             child: Text(
-                              url,
+                              shortUrl,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -118,7 +121,23 @@ class _BrowserShareScreenState extends ConsumerState<BrowserShareScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
+                  Text(
+                    s.t('Then enter this PIN', 'फिर यह PIN डालें'),
+                    style: TextStyle(color: p.textMuted, fontSize: 13),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${pin.substring(0, 3)} ${pin.substring(3)}',
+                    style: TextStyle(
+                      color: p.accentText,
+                      fontSize: 34,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 4,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
                 ],
                 if (running)
                   OutlinedButton.icon(

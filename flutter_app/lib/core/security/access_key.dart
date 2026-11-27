@@ -12,6 +12,13 @@ String generateAccessKey() {
   return sb.toString();
 }
 
+/// Short 6-digit PIN typed on another device. Brute force is stopped by the
+/// attempt lockout in the portal server, not by the key length.
+String generatePin() {
+  final n = _rng.nextInt(1000000);
+  return n.toString().padLeft(6, '0');
+}
+
 /// Comparison whose duration does not depend on where the strings first differ.
 bool constantTimeEquals(String a, String b) {
   if (a.length != b.length) return false;

@@ -29,7 +29,11 @@ class SharedBrowserFile {
 class BrowserShareServer {
   HttpServer? _server;
   static const int _maxUploadBytes = 1 << 36; // 64 GiB hard cap per upload
-  String _accessKey = generateAccessKey();
+  String _accessKey = generatePin();
+  int _failedAttempts = 0;
+  DateTime? _lockedUntil;
+  static const int _maxAttempts = 5;
+  static const Duration _lockFor = Duration(minutes: 5);
 
   /// Random per-session key. The portal URL shown to the user carries it as `?k=`;
   /// every request (page, file list, download, upload) must present it.
@@ -50,7 +54,9 @@ class BrowserShareServer {
 
   Future<int> start({int preferredPort = 8080}) async {
     await stop();
-    _accessKey = generateAccessKey();
+    _accessKey = generatePin();
+    _failedAttempts = 0;
+    _lockedUntil = null;
     final handler = const shelf.Pipeline()
         .addMiddleware(shelf.logRequests())
         .addHandler(_route);
@@ -88,9 +94,39 @@ class BrowserShareServer {
     final path = request.url.path;
 
     if (!_isAuthorized(request)) {
+      final supplied =
+          request.headers['x-vega-key'] ?? request.url.queryParameters['k'] ?? '';
+      final now = DateTime.now();
+      final locked = _lockedUntil != null && now.isBefore(_lockedUntil!);
+      var wrong = false;
+      if (supplied.isNotEmpty && !locked) {
+        wrong = true;
+        _failedAttempts++;
+        if (_failedAttempts >= _maxAttempts) {
+          _lockedUntil = now.add(_lockFor);
+          _failedAttempts = 0;
+        }
+      }
+      if (request.method == 'GET' && path.isEmpty) {
+        final nowLocked = _lockedUntil != null && now.isBefore(_lockedUntil!);
+        return shelf.Response(
+          nowLocked ? 429 : 200,
+          body: _pinPageHtml(
+            error: nowLocked
+                ? 'Too many wrong attempts. Try again in a few minutes.'
+                : (wrong ? 'Wrong PIN. Check the PIN shown in the Vega app.' : null),
+          ),
+          headers: {
+            ..._secureHeaders,
+            'content-type': 'text/html; charset=utf-8',
+            'content-security-policy':
+                "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'",
+          },
+        );
+      }
       return shelf.Response(
         401,
-        body: 'Access key required. Open the full link shown in the Vega app.',
+        body: 'PIN required. Open this address in a browser and enter the PIN shown in the Vega app.',
         headers: {..._secureHeaders, 'content-type': 'text/plain; charset=utf-8'},
       );
     }
@@ -211,6 +247,33 @@ class BrowserShareServer {
   static String _contentDisposition(String name) {
     final ascii = name.replaceAll(RegExp(r'[^A-Za-z0-9._-]'), '_');
     return "attachment; filename=\"$ascii\"; filename*=UTF-8''${Uri.encodeComponent(name)}";
+  }
+
+  String _pinPageHtml({String? error}) {
+    final msg = error == null
+        ? ''
+        : '<p class="e">${error.replaceAll('&', '&amp;').replaceAll('<', '&lt;')}</p>';
+    return '''<!doctype html>
+<html lang="en"><head><meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Vega</title>
+<style>
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0A1F44;color:#fff;font-family:system-ui,sans-serif}
+.c{width:min(340px,90vw);text-align:center}
+h1{font-size:28px;margin:0 0 6px;letter-spacing:.14em}
+p{color:#BFD6FF;font-size:14px}
+.e{color:#FFB36B}
+input{width:100%;box-sizing:border-box;font-size:30px;letter-spacing:.35em;text-align:center;padding:12px;border-radius:16px;border:1px solid #F5D08A;background:#0D2148;color:#fff;margin:12px 0}
+button{width:100%;padding:14px;border-radius:999px;border:0;background:#E06D06;color:#fff;font-size:17px;font-weight:700;cursor:pointer}
+</style></head><body><div class="c">
+<h1>VEGA</h1><p>Enter the 6-digit PIN shown on the phone</p>$msg
+<input id="p" inputmode="numeric" maxlength="6" autofocus autocomplete="off" />
+<button id="b">Open</button></div>
+<script>
+function go(){var v=document.getElementById('p').value.replace(/\\D/g,'');if(v)location.href='/?k='+v;}
+document.getElementById('b').onclick=go;
+document.getElementById('p').onkeydown=function(e){if(e.key==='Enter')go();};
+</script></body></html>''';
   }
 
   String _portalHtml() {
