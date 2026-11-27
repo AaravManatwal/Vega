@@ -63,6 +63,8 @@ jobs:
       - name: Analyze security modules
         run: flutter analyze lib/core
         continue-on-error: true
+      - name: Compile check (errors only, no APK)
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings lib
       - name: Security unit tests
         run: flutter test
 

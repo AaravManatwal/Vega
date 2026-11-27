@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'dart:ui' show FontFeature;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../l10n/vega_strings.dart';
 import '../models/transfer_models.dart';
@@ -9,7 +11,7 @@ import '../widgets/heritage/motion_widgets.dart';
 import '../widgets/heritage/heritage_palette.dart';
 import '../widgets/heritage/heritage_panel.dart';
 import '../widgets/heritage/saffron_button.dart';
-import '../widgets/progress/progress_ring.dart';
+import '../widgets/heritage/wavy_progress.dart';
 import 'history_settings_screens.dart';
 
 /// One transfer, full screen, in the heritage design: ring, speed, time left, file.
@@ -38,6 +40,14 @@ class TransferProgressScreen extends ConsumerWidget {
     final hi = ref.watch(vegaProvider.select((s) => s.settings.isHindi));
     final s = VegaStrings(hi);
     final p = HeritagePalette.of(context);
+    ref.listen<TransferStatus?>(
+      vegaProvider.select((st) => st.tasks[taskId]?.status),
+      (prev, next) {
+        if (next == TransferStatus.completed && prev != TransferStatus.completed) {
+          HapticFeedback.heavyImpact();
+        }
+      },
+    );
 
     if (task == null) {
       return HeritagePage(
@@ -78,16 +88,18 @@ class TransferProgressScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 10),
-            Center(
+            Align(
+              alignment: Alignment.center,
               child: done
                   ? const CompletionBurst(size: 240)
-                  : ProgressRing(
-                hindi: hi,
-                progress: task.progress,
-                speedBytesPerSec: done ? 0 : task.speedBytesPerSec,
-                remaining: _remaining(task),
-                done: done,
-              ),
+                  : _Hero(
+                      hindi: hi,
+                      progress: task.progress,
+                      speed: task.speedBytesPerSec,
+                      remaining: _remaining(task),
+                      transferred: _size(task.transferredBytes),
+                      total: _size(task.totalBytes),
+                    ),
             ),
             const SizedBox(height: 18),
             if (failed || verifying) ...[
@@ -259,6 +271,98 @@ class _Tag extends StatelessWidget {
         const SizedBox(width: 6),
         Text(label, style: TextStyle(color: p.text, fontSize: 12.5, fontWeight: FontWeight.w600)),
       ]),
+    );
+  }
+}
+
+
+/// Big percentage, live speed, time left and a wavy bar (matches the approved preview).
+class _Hero extends StatelessWidget {
+  const _Hero({
+    required this.hindi,
+    required this.progress,
+    required this.speed,
+    required this.remaining,
+    required this.transferred,
+    required this.total,
+  });
+
+  final bool hindi;
+  final double progress;
+  final double speed;
+  final Duration? remaining;
+  final String transferred;
+  final String total;
+
+  String _eta() {
+    final d = remaining;
+    if (d == null) return hindi ? 'समय का अनुमान लग रहा है' : 'estimating time';
+    final sec = d.inSeconds;
+    if (sec < 60) return hindi ? 'लगभग $sec सेकंड बाकी' : 'about $sec s left';
+    final m = (sec / 60).ceil();
+    return hindi ? 'लगभग $m मिनट बाकी' : 'about $m min left';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final p = HeritagePalette.of(context);
+    final pct = (progress * 100).floor().clamp(0, 100);
+    const tnum = [FontFeature.tabularFigures()];
+    return Semantics(
+      label: '$pct%, ${formatSpeed(speed)}, ${_eta()}',
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SizedBox(height: 14),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(
+                '$pct',
+                style: TextStyle(
+                  fontFamily: 'Cinzel',
+                  fontWeight: FontWeight.w700,
+                  fontSize: 92,
+                  height: 1,
+                  color: p.text,
+                  fontFeatures: tnum,
+                ),
+              ),
+              Text(
+                '%',
+                style: TextStyle(
+                  fontFamily: 'Cinzel',
+                  fontWeight: FontWeight.w700,
+                  fontSize: 38,
+                  color: p.accentText,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            formatSpeed(speed),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w600,
+              color: p.accentText,
+              fontFeatures: tnum,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${_eta()} · $transferred / $total',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: p.textMuted, fontSize: 14, fontFeatures: tnum),
+          ),
+          const SizedBox(height: 26),
+          WavyProgress(value: progress.clamp(0.0, 1.0), height: 22),
+        ],
+      ),
     );
   }
 }
